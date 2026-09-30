@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.9-beta.1]
+
+- Fixed new-branch download progress so small setup files cannot be mistaken for the full game size. Transferred bytes continue advancing when an earlier estimate is too small, and the total is recalculated from download milestones.
+- Kept active game downloads below a displayed 100% until completion, while showing the current file and measured bytes as SIMM calculates the total.
+- Made database migration checksums consistent across builds with different line endings and safely recovered previously applied mod-integration migrations when their expected schema is present.
+
 ## [0.8.8]
 
 - Added Nexus collection discovery and a source-neutral collection catalog to Mod Library, with revision details, dependencies, version information, direct collection flows, and clearer collection overview pages.

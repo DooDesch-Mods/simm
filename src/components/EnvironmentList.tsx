@@ -2070,6 +2070,7 @@ export function EnvironmentList({
   const renderEnvironmentCard = (env: Environment) => {
     const prog = progress.get(env.id);
     const isDownloading = env.status === 'downloading' || prog?.status === 'queued' || prog?.status === 'downloading' || prog?.status === 'validating';
+    const showDownloadPercent = prog?.operation === 'verify' || (typeof prog?.totalBytes === 'number' && prog.totalBytes > 0);
     const gameOperationInProgress = Boolean(activeGameDownloadId) && activeGameDownloadId !== env.id;
     const gameOperationTitle = activeGameDownloadName
       ? `${activeGameDownloadName} is already downloading, updating, or being verified.`
@@ -2409,10 +2410,10 @@ export function EnvironmentList({
 
           {isDownloading && prog && (
             <div className="progress-info environment-card__progress">
-              <div className={`progress-bar${prog.progress <= 0 && !(typeof prog.downloadedBytes === 'number' && prog.downloadedBytes > 0) ? ' progress-bar--indeterminate' : ''}`}>
+              <div className={`progress-bar${!showDownloadPercent ? ' progress-bar--indeterminate' : ''}`}>
                 <div className="progress-fill" style={{ width: `${Math.min(100, Math.max(0, prog.progress))}%` }} />
               </div>
-              <p><strong>{Math.round(prog.progress)}%</strong>{prog.message ? ` • ${prog.message}` : ''}</p>
+              <p><strong>{showDownloadPercent ? `${Math.min(prog.status === 'completed' ? 100 : 99, Math.round(prog.progress))}%` : 'Calculating total…'}</strong>{prog.message ? ` • ${prog.message}` : ''}</p>
               {typeof prog.downloadedBytes === 'number' && prog.downloadedBytes > 0 && (
                 <p>
                   Downloaded: {formatProgressBytes(prog.downloadedBytes)}

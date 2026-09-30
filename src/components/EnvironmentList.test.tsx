@@ -442,6 +442,29 @@ describe('EnvironmentList', () => {
     expect(screen.queryByText(/Files: 4 \/ 10/)).toBeNull();
   });
 
+  it('keeps the environment progress indeterminate while the total is unknown', async () => {
+    const baseStore = storeMocks.useEnvironmentStore();
+    storeMocks.useEnvironmentStore.mockReturnValue({
+      ...baseStore,
+      progress: new Map([['env-1', {
+        downloadId: 'env-1',
+        operationId: 'operation-new-branch',
+        operation: 'download',
+        status: 'downloading',
+        progress: 99.5,
+        downloadedBytes: 1024 * 1024,
+        message: 'C:\\Games\\Schedule I_Data\\resources.assets',
+      }]]),
+    });
+
+    const { container } = render(<EnvironmentList />);
+
+    expect(await screen.findByText('Calculating total…', { exact: false })).toBeTruthy();
+    expect(screen.getByText(/Downloaded: 1\.00 MB/)).toBeTruthy();
+    expect(container.querySelector('.environment-card__progress .progress-bar--indeterminate')).not.toBeNull();
+    expect(screen.queryByText('100%')).toBeNull();
+  });
+
   it('opens per-install mod integration settings from the environment actions', async () => {
     render(<EnvironmentList />);
 

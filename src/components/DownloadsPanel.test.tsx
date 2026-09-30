@@ -77,6 +77,49 @@ describe('DownloadsPanel', () => {
     render(<DownloadsPanel />);
 
     expect(document.querySelector('.downloads-panel__progress-bar--indeterminate')).not.toBeNull();
+    expect(screen.getByText('Calculating total…')).toBeTruthy();
+  });
+
+  it('shows measured bytes without a stale percentage after an estimate is invalidated', () => {
+    downloadStatusStoreMocks.useDownloadStatusStore.mockReturnValue({
+      downloads: [{
+        id: 'game-new-branch',
+        kind: 'game',
+        label: 'New Branch',
+        contextLabel: 'Game download',
+        status: 'downloading',
+        progress: 0,
+        downloadedBytes: 1024 * 1024,
+        message: 'C:\\Games\\Schedule I_Data\\resources.assets',
+        startedAt: Date.now(),
+      }],
+    });
+
+    render(<DownloadsPanel />);
+
+    expect(screen.getByText('1.00 MB downloaded')).toBeTruthy();
+    expect(screen.getByText('C:\\Games\\Schedule I_Data\\resources.assets')).toBeTruthy();
+    expect(document.querySelector('.downloads-panel__progress-bar--indeterminate')).not.toBeNull();
+  });
+
+  it('does not round an active game download up to 100 percent', () => {
+    downloadStatusStoreMocks.useDownloadStatusStore.mockReturnValue({
+      downloads: [{
+        id: 'game-finalizing',
+        kind: 'game',
+        label: 'Alternate Branch',
+        contextLabel: 'Game download',
+        status: 'downloading',
+        progress: 99.5,
+        downloadedBytes: 999,
+        totalBytes: 1000,
+        startedAt: Date.now(),
+      }],
+    });
+
+    render(<DownloadsPanel />);
+
+    expect(screen.getByText('99% - 999 B / 1000 B')).toBeTruthy();
   });
 
   it('renders an indeterminate bar for active non-game downloads', () => {

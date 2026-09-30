@@ -51,15 +51,7 @@ function isActiveStatus(status: TrackedDownload['status']) {
 
 function isIndeterminate(download: TrackedDownload) {
   const active = download.status === 'downloading' || download.status === 'queued' || download.status === 'validating';
-  return (
-    active && (
-      download.kind !== 'game'
-      || (
-        download.progress <= 0
-        && !(typeof download.downloadedBytes === 'number' && download.downloadedBytes > 0)
-      )
-    )
-  );
+  return active && (download.kind !== 'game' || !hasUsableByteCounts(download));
 }
 
 interface DownloadsPanelProps {
@@ -71,10 +63,14 @@ interface DownloadsPanelProps {
 function progressText(download: TrackedDownload) {
   if (download.kind === 'game') {
     if (hasUsableByteCounts(download)) {
-      return `${Math.round(download.progress)}% - ${formatBytes(download.downloadedBytes!)} / ${formatBytes(download.totalBytes!)}`;
+      const percent = Math.min(isActiveStatus(download.status) ? 99 : 100, Math.round(download.progress));
+      return `${percent}% - ${formatBytes(download.downloadedBytes!)} / ${formatBytes(download.totalBytes!)}`;
     }
     if (typeof download.downloadedBytes === 'number' && download.downloadedBytes > 0) {
       return `${formatBytes(download.downloadedBytes)} downloaded`;
+    }
+    if (isActiveStatus(download.status)) {
+      return 'Calculating total…';
     }
     if (hasUsableFileCounts(download)) {
       return `${Math.round(download.progress)}%`;
@@ -185,7 +181,7 @@ function renderDownloadRow(
 
       {(download.message || download.error) && (
         <div className="downloads-panel__row-bottom">
-          {download.message && !isIndeterminate(download) && download.status !== 'completed' && <span>{download.message}</span>}
+          {download.message && (download.kind === 'game' || !indeterminate) && download.status !== 'completed' && <span>{download.message}</span>}
           {download.error && <span className="downloads-panel__error">{download.error}</span>}
         </div>
       )}
