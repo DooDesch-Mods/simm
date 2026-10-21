@@ -102,6 +102,7 @@ vi.mock('../stores/settingsStore', () => ({
 }));
 
 vi.mock('../utils/logger', () => ({
+  logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
   interceptConsole: vi.fn(),
 }));
 
@@ -809,55 +810,27 @@ describe('App', () => {
     });
   });
 
-  it('warns when MelonLoader launch verification does not confirm a fresh log', async () => {
+  it('uses a process-aware nonmodal slow status and recovers a late shell launch', async () => {
+    let confirmed = false;
     invokeMock.mockImplementation((command: string) => {
-      if (command === 'launch_game') {
-        return Promise.resolve({ success: true, launchStartedAt: 12345 });
-      }
-      if (command === 'verify_melonloader_launch') {
-        return Promise.resolve({
-          status: 'staleLog',
-          confirmed: false,
-          logPath: 'C:/Games/Main/MelonLoader/Latest.log',
-          message: 'MelonLoader log exists, but it has not been refreshed since this launch request.',
-        });
-      }
+      if (command === 'launch_game') return Promise.resolve({ success: true, launchStartedAt: 12345 });
+      if (command === 'inspect_game_launch') return Promise.resolve({ environmentId: 'env-main', launchStartedAt: 12345, processState: 'running', loaderState: confirmed ? 'confirmed' : 'staleLog', logPath: 'C:/Games/Main/MelonLoader/Latest.log', modifiedAt: 1, diagnostic: null });
       return Promise.resolve(false);
     });
-    environmentStoreMocks.useEnvironmentStore.mockReturnValue({
-      environments: [
-        {
-          id: 'env-main',
-          name: 'Main',
-          appId: '3164500',
-          branch: 'main',
-          outputDir: 'C:/Games/Main',
-          runtime: 'IL2CPP',
-          status: 'completed',
-        },
-      ],
-    });
-
+    environmentStoreMocks.useEnvironmentStore.mockReturnValue({ environments: [{ id: 'env-main', name: 'Main', appId: '3164500', branch: 'main', outputDir: 'C:/Games/Main', runtime: 'IL2CPP', status: 'completed' }] });
     render(<App />);
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Launch Game' }));
-
-    await waitFor(() => {
-      expect(invokeMock).toHaveBeenCalledWith('verify_melonloader_launch', {
-        environmentId: 'env-main',
-        launchStartedAt: 12345,
-        timeoutMs: 20000,
-      });
-    });
-    await waitFor(() => {
-      expect(dialogMocks.message).toHaveBeenCalledWith(
-        expect.stringContaining('MelonLoader log exists'),
-        {
-          title: 'MelonLoader Launch Not Confirmed: Main',
-          kind: 'warning',
-        },
-      );
-    });
+    const button = await screen.findByRole('button', { name: 'Launch Game' });
+    vi.useFakeTimers();
+    await act(async () => { fireEvent.click(button); });
+    expect(invokeMock).toHaveBeenCalledWith('inspect_game_launch', { environmentId: 'env-main', launchStartedAt: 12345 });
+    await act(async () => { await vi.advanceTimersByTimeAsync(20_000); });
+    expect(screen.getByText('Schedule I is taking longer to start')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: /MelonLoader Launch Not Confirmed/ })).not.toBeInTheDocument();
+    expect(dialogMocks.message).not.toHaveBeenCalled();
+    confirmed = true;
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_000); });
+    expect(screen.queryByText('Schedule I is taking longer to start')).not.toBeInTheDocument();
+    expect(invokeMock.mock.calls.filter(([command]) => command === 'launch_game')).toHaveLength(1);
   });
 
   it('offers to restart Steam from the shell action when a shortcut reload is required', async () => {
@@ -889,15 +862,11 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Launch Game' }));
 
-    await waitFor(() => {
-      expect(dialogMocks.confirm).toHaveBeenCalledWith(
-        expect.stringContaining("Steam needs to reload SIMM's shortcut"),
-        {
-          title: 'Restart Steam: Il2Cpp',
-          kind: 'warning',
-        },
-      );
-    });
+    const restart = await screen.findByRole('alertdialog', { name: 'Restart Steam: Il2Cpp' });
+    expect(restart).toHaveClass('app-dialog');
+    expect(dialogMocks.confirm).not.toHaveBeenCalled();
+    expect(invokeMock.mock.calls.filter(([command]) => command === 'launch_game')).toHaveLength(1);
+    fireEvent.click(within(restart).getByRole('button', { name: 'Restart Steam' }));
 
     await waitFor(() => {
       expect(invokeMock).toHaveBeenCalledWith('launch_game', {
@@ -1393,8 +1362,11 @@ describe('App', () => {
     const installButton = await screen.findByRole('button', { name: 'Install App Update' });
     fireEvent.click(installButton);
 
+    const decision = await screen.findByRole('alertdialog', { name: 'Install SIMM Update' });
+    expect(dialogMocks.confirm).not.toHaveBeenCalled();
+    expect(invokeMock.mock.calls.filter(([name]) => name === 'install_app_update')).toHaveLength(0);
+    fireEvent.click(within(decision).getByRole('button', { name: 'Install' }));
     await waitFor(() => {
-      expect(dialogMocks.confirm).toHaveBeenCalled();
       expect(invokeMock).toHaveBeenCalledWith('install_app_update', { channel: 'beta' });
       expect(processMocks.relaunch).toHaveBeenCalled();
     });

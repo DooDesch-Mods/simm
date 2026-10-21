@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { StrictMode } from 'react';
+import { act, cleanup, fireEvent, render as rtlRender, screen, type RenderOptions, waitFor } from '@testing-library/react';
+import { StrictMode, type ReactNode } from 'react';
+import { GameLaunchStoreProvider } from '../stores/gameLaunchStore';
+import { AppDialogProvider } from './AppDialogProvider';
+import { GameLaunchStatus } from './GameLaunchStatus';
+function LaunchTestProviders({ children }: { children: ReactNode }) { return <AppDialogProvider><GameLaunchStoreProvider>{children}<GameLaunchStatus onViewLogs={() => {}} /></GameLaunchStoreProvider></AppDialogProvider>; }
+const render = (ui: ReactNode, options?: RenderOptions) => rtlRender(ui, { wrapper: LaunchTestProviders, ...options });
 import { EnvironmentList } from './EnvironmentList';
 import type { Environment, ModLibraryResult } from '../types';
 import { normalizeLibraryFeaturedDownloads } from '../services/featuredDownloads';
@@ -26,6 +31,7 @@ const apiMocks = vi.hoisted(() => ({
   openFolder: vi.fn(),
   launchGame: vi.fn(),
   verifyMelonLoaderLaunch: vi.fn(),
+  inspectGameLaunch: vi.fn(),
   getMelonLoaderReleases: vi.fn(),
   installMelonLoader: vi.fn(),
   repairMelonLoaderLaunchOptions: vi.fn(),
@@ -269,7 +275,8 @@ describe('EnvironmentList', () => {
     apiMocks.getPluginsCount.mockResolvedValue({ count: 0 });
     apiMocks.getUserLibsCount.mockResolvedValue({ count: 0 });
     apiMocks.openFolder.mockResolvedValue({ success: true });
-    apiMocks.launchGame.mockResolvedValue({ success: true });
+    apiMocks.launchGame.mockResolvedValue({ success: true, launchStartedAt: 12345 });
+    apiMocks.inspectGameLaunch.mockImplementation(async (environmentId, launchStartedAt) => ({ environmentId, launchStartedAt, processState: 'running', loaderState: 'notInstalled', logPath: '', modifiedAt: null, diagnostic: null }));
     apiMocks.verifyMelonLoaderLaunch.mockResolvedValue({
       status: 'notInstalled',
       confirmed: false,
@@ -521,6 +528,7 @@ describe('EnvironmentList', () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
   });
 
   it('confirms and starts an in-place game file verification for an installed environment', async () => {
@@ -1002,52 +1010,26 @@ describe('EnvironmentList', () => {
     expect(await screen.findByRole('button', { name: 'Launch' })).toBeEnabled();
   });
 
-  it('verifies MelonLoader startup after a card launch returns a start timestamp', async () => {
-    apiMocks.launchGame.mockResolvedValueOnce({
-      success: true,
-      launchStartedAt: 12345,
-    });
-    apiMocks.verifyMelonLoaderLaunch.mockResolvedValueOnce({
-      status: 'confirmed',
-      confirmed: true,
-      logPath: 'C:/env-1/MelonLoader/Latest.log',
-      message: 'MelonLoader wrote a fresh launch log.',
-    });
-
+  it('uses the shared process snapshot after a card launch', async () => {
     render(<EnvironmentList />);
-
     fireEvent.click(await screen.findByRole('button', { name: 'Launch' }));
-
-    await waitFor(() => {
-      expect(apiMocks.verifyMelonLoaderLaunch).toHaveBeenCalledWith('env-1', 12345, 20000);
-    });
+    await waitFor(() => { expect(apiMocks.inspectGameLaunch).toHaveBeenCalledWith('env-1', 12345); });
+    expect(apiMocks.verifyMelonLoaderLaunch).not.toHaveBeenCalled();
   });
 
-  it('warns when card launch verification does not confirm a fresh MelonLoader log', async () => {
-    apiMocks.launchGame.mockResolvedValueOnce({
-      success: true,
-      launchStartedAt: 12345,
-    });
-    apiMocks.verifyMelonLoaderLaunch.mockResolvedValueOnce({
-      status: 'staleLog',
-      confirmed: false,
-      logPath: 'C:/env-1/MelonLoader/Latest.log',
-      message: 'MelonLoader log exists, but it has not been refreshed since this launch request.',
-    });
-
+  it('shows nonmodal slow startup and clears it on late confirmation without relaunch', async () => {
+    apiMocks.inspectGameLaunch.mockImplementation(async (environmentId, launchStartedAt) => ({ environmentId, launchStartedAt, processState: 'running', loaderState: 'staleLog', logPath: 'C:/env-1/MelonLoader/Latest.log', modifiedAt: 1, diagnostic: null }));
     render(<EnvironmentList />);
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Launch' }));
-
-    expect(await screen.findByTestId('message-overlay')).toHaveTextContent(
-      'MelonLoader Launch Not Confirmed: Env One',
-    );
-    expect(screen.getByTestId('message-overlay')).toHaveTextContent(
-      'MelonLoader log exists, but it has not been refreshed since this launch request.',
-    );
-    expect(screen.getByTestId('message-overlay')).toHaveTextContent(
-      'C:/env-1/MelonLoader/Latest.log',
-    );
+    const button = await screen.findByRole('button', { name: 'Launch' });
+    vi.useFakeTimers();
+    await act(async () => { fireEvent.click(button); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(20_000); });
+    expect(screen.getByText('Schedule I is taking longer to start')).toBeInTheDocument();
+    expect(screen.queryByTestId('message-overlay')).not.toBeInTheDocument();
+    apiMocks.inspectGameLaunch.mockImplementation(async (environmentId, launchStartedAt) => ({ environmentId, launchStartedAt, processState: 'running', loaderState: 'confirmed', logPath: '', modifiedAt: 12345, diagnostic: null }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_000); });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(apiMocks.launchGame).toHaveBeenCalledTimes(1);
   });
 
   it('installs missing Linux MelonLoader Proton setup from the environment chip', async () => {
@@ -1159,7 +1141,7 @@ describe('EnvironmentList', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Launch' }));
 
-    expect(await screen.findByTestId('confirm-overlay')).toHaveTextContent('Restart Steam?');
+    expect(await screen.findByTestId('confirm-overlay')).toHaveTextContent('Restart Steam: Env One');
     fireEvent.click(screen.getByRole('button', { name: 'Restart Steam' }));
 
     await waitFor(() => {

@@ -1,6 +1,8 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render as renderBase, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProfilesWorkspace } from './ProfilesWorkspace';
+import { AppDialogProvider } from './AppDialogProvider';
+const render = (ui: Parameters<typeof renderBase>[0]) => renderBase(<AppDialogProvider>{ui}</AppDialogProvider>);
 import type { Environment, ModProfileSaveRequest, StoredModProfile } from '../types';
 
 const storeMocks = vi.hoisted(() => ({
@@ -838,7 +840,7 @@ describe('ProfilesWorkspace', () => {
     });
   });
 
-  it('uses the supported Tauri confirmation before deleting a custom profile', async () => {
+  it('uses themed confirmation before deleting a custom profile', async () => {
     const customProfile: StoredModProfile = {
       ...profiles[1],
       id: 'profile-custom',
@@ -860,13 +862,11 @@ describe('ProfilesWorkspace', () => {
     expect(await screen.findByRole('heading', { name: 'Custom Mono Profile' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
-    await waitFor(() => {
-      expect(dialogMocks.confirm).toHaveBeenCalledWith(
-        'Delete Custom Mono Profile?',
-        { title: 'Delete profile', kind: 'warning' },
-      );
-      expect(apiMocks.deleteModProfile).toHaveBeenCalledWith('profile-custom');
-    });
+    const decision = await screen.findByRole('alertdialog', { name: 'Delete profile' });
+    expect(apiMocks.deleteModProfile).not.toHaveBeenCalled();
+    expect(dialogMocks.confirm).not.toHaveBeenCalled();
+    fireEvent.click(within(decision).getByRole('button', { name: 'Confirm' }));
+    await waitFor(() => expect(apiMocks.deleteModProfile).toHaveBeenCalledWith('profile-custom'));
   });
 
   it('does not label un-previewed default profile items as unsupported', async () => {
@@ -995,11 +995,11 @@ describe('ProfilesWorkspace', () => {
     await screen.findByRole('button', { name: /Default IL2CPP/i });
     fireEvent.click(screen.getByRole('button', { name: /^Apply$/i }));
 
-    await waitFor(() => expect(dialogMocks.confirm).toHaveBeenCalled());
-    const [warning, options] = dialogMocks.confirm.mock.calls[0];
-    expect(warning).toContain('Local Only Mod');
-    expect(warning).toContain('permanently deleted');
-    expect(options).toEqual({ title: 'Profile switch will delete files', kind: 'warning' });
+    const decision = await screen.findByRole('alertdialog', { name: 'Profile switch will delete files' });
+    expect(decision).toHaveTextContent('Local Only Mod');
+    expect(decision).toHaveTextContent('permanently deleted');
+    expect(dialogMocks.confirm).not.toHaveBeenCalled();
+    fireEvent.click(within(decision).getByRole('button', { name: 'Cancel' }));
     expect(apiMocks.applyModProfile).not.toHaveBeenCalled();
     const inspector = screen.getByRole('complementary', { name: /selected profile/i });
     expect(within(inspector).getByText('Environment changes')).toBeTruthy();

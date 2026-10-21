@@ -15106,3 +15106,29 @@ body {
   }
 
 }
+
+/* Launch feedback stays in the app flow and never takes focus from the game. */
+.game-launch-status {
+  flex: 0 0 auto;
+  max-height: 30vh;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg-color);
+  color: var(--app-text-color);
+}
+.game-launch-status__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.65rem 1rem;
+}
+.game-launch-status__notice + .game-launch-status__notice { border-top: 1px solid var(--border-color); }
+.game-launch-status__content { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.game-launch-status__environment { margin-left: 0.65rem; color: var(--text-secondary); }
+.game-launch-status__content p { margin: 0.2rem 0; }
+.game-launch-status__path { display: block; font-size: 0.75rem; color: var(--text-secondary); overflow-wrap: anywhere; }
+.game-launch-status__actions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+@media (max-width: 800px) {
+  .game-launch-status__notice { flex-wrap: wrap; }
+  .game-launch-status__actions { flex-basis: 100%; }
+}

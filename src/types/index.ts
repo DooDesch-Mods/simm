@@ -1137,3 +1137,13 @@ export type {
   CallChain,
   DataFlowChain,
 } from './mlvscan';
+
+export interface GameLaunchInspection {
+  environmentId: string;
+  launchStartedAt: number;
+  processState: 'running' | 'notRunning' | 'unknown';
+  loaderState: 'confirmed' | 'notInstalled' | 'noLog' | 'staleLog' | 'noConfirmation' | 'unavailable';
+  logPath: string;
+  modifiedAt: number | null;
+  diagnostic: string | null;
+}

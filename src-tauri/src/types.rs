@@ -1931,3 +1931,23 @@ mod tests {
         );
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GameProcessState {
+    Running,
+    NotRunning,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameLaunchInspection {
+    pub environment_id: String,
+    pub launch_started_at: u64,
+    pub process_state: GameProcessState,
+    pub loader_state: String,
+    pub log_path: String,
+    pub modified_at: Option<u64>,
+    pub diagnostic: Option<String>,
+}

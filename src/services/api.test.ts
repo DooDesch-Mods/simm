@@ -14,6 +14,14 @@ describe('ApiService', () => {
     invokeMock.mockReset();
   });
 
+  it('requests one independent launch snapshot with the original freshness timestamp', async () => {
+    const snapshot = { environmentId: 'env', launchStartedAt: 1234, processState: 'unknown', loaderState: 'unavailable', logPath: '', modifiedAt: null, diagnostic: 'Inspection unavailable' };
+    invokeMock.mockResolvedValueOnce(snapshot);
+    await expect(ApiService.inspectGameLaunch('env', 1234)).resolves.toEqual(snapshot);
+    expect(invokeMock).toHaveBeenCalledWith('inspect_game_launch', { environmentId: 'env', launchStartedAt: 1234 });
+    expect(invokeMock).toHaveBeenCalledTimes(1);
+  });
+
   it('saveSettings passes updates and returns success', async () => {
     invokeMock.mockResolvedValueOnce(undefined);
     const result = await ApiService.saveSettings({ theme: 'dark' });

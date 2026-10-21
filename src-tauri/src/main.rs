@@ -291,6 +291,7 @@ fn main() {
             commands::melon_loader::install_melon_loader,
             commands::melon_loader::repair_melonloader_launch_options,
             commands::melon_loader::verify_melonloader_launch,
+            commands::melon_loader::inspect_game_launch,
             commands::melon_loader::uninstall_melon_loader,
             commands::melon_loader::get_available_melonloader_versions,
             // GitHub Releases

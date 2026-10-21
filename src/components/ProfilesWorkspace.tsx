@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { confirm, open, save } from '@tauri-apps/plugin-dialog';
+import { open, save } from '@tauri-apps/plugin-dialog';
+import { useAppDialogs } from './AppDialogProvider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -181,6 +182,7 @@ function collectionSourceLabel(
 }
 
 export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: ProfilesWorkspaceProps) {
+  const { confirm } = useAppDialogs();
   const { environments, loading: environmentsLoading, refreshEnvironments } = useEnvironmentStore();
   const downloadStatusStore = useOptionalDownloadStatusStore();
   const [profiles, setProfiles] = useState<StoredModProfile[]>([]);
@@ -727,7 +729,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
       ).catch(() => undefined);
       throw err;
     }
-  }, [refreshNexusDownloadAccess, saveCollectionProfile, selectedProfile, setCollectionItemStatus]);
+  }, [refreshNexusDownloadAccess, saveCollectionProfile, selectedProfile, setCollectionItemStatus, confirm]);
 
   useEffect(() => {
     const handleManualDownloadResult = (event: Event) => {
@@ -790,7 +792,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
       kind: 'warning',
     });
     return confirmed ? nextPlan : null;
-  }, []);
+  }, [confirm]);
 
   const applyProfile = useCallback(async () => {
     const profile = requireSelection();
@@ -993,7 +995,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
     await ApiService.deleteModProfile(selectedProfile.id);
     await loadProfiles();
     return `Deleted ${selectedProfile.name}.`;
-  }, [loadProfiles, selectedProfile, selectedProfileActiveCount]);
+  }, [loadProfiles, selectedProfile, selectedProfileActiveCount, confirm]);
 
   return (
     <section className="profiles-workspace modal-content workspace-panel" aria-label="Profiles workspace">

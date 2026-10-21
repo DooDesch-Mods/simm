@@ -6,6 +6,8 @@ pub mod environment;
 pub mod filesystem;
 pub mod filesystem_watcher;
 pub mod fomod;
+pub mod game_launch;
+pub mod game_process;
 pub mod game_session_monitor;
 pub mod game_version;
 pub mod github_releases;

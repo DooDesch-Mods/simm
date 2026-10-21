@@ -11,7 +11,9 @@ import type { ComponentType, ReactNode, TransitionEvent } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow, UserAttentionType } from '@tauri-apps/api/window';
 import { getCurrent as getCurrentDeepLink, onOpenUrl } from '@tauri-apps/plugin-deep-link';
-import { confirm, message } from '@tauri-apps/plugin-dialog';
+import { AppDialogProvider, useAppDialogs } from './AppDialogProvider';
+import { GameLaunchStoreProvider, isLaunchPending, useGameLaunchStore } from '../stores/gameLaunchStore';
+import { GameLaunchStatus } from './GameLaunchStatus';
 import { relaunch } from '@tauri-apps/plugin-process';
 import type { WorkspaceRoute } from './EnvironmentList';
 import { useDiscordPresence } from '../hooks/useDiscordPresence';
@@ -37,7 +39,7 @@ import {
   resolveExperienceMode,
   settingsNeedUpgradeSetupPrompt,
 } from '../utils/uxSettings';
-import { getErrorMessage, isSteamShortcutReloadError } from '../utils/errors';
+import { getErrorMessage } from '../utils/errors';
 import { sortEnvironmentsForDisplay } from '../utils/environmentOrdering';
 import type {
   Environment,
@@ -1375,6 +1377,8 @@ function AppWindowChrome({ utilityActions }: { utilityActions: readonly ShellUti
 }
 
 function AppContent() {
+  const { confirm, message } = useAppDialogs();
+  const { attempts: launchAttempts, requestLaunch } = useGameLaunchStore();
   const [appWindow] = useState(() => getCurrentWindow());
   type PendingNexusRuntimeSelection = {
     nxmUrl: string;
@@ -1437,7 +1441,6 @@ function AppContent() {
   const [installingAppUpdate, setInstallingAppUpdate] = useState(false);
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string | null>(null);
   const [environmentFocusRequestId, setEnvironmentFocusRequestId] = useState(0);
-  const [launchingEnvironmentId, setLaunchingEnvironmentId] = useState<string | null>(null);
   const [telemetryAvailable, setTelemetryAvailable] = useState(false);
   const [shellNavCollapsed, setShellNavCollapsed] = useState(readStoredShellNavCollapsed);
   const [shellNavAnimating, setShellNavAnimating] = useState(false);
@@ -2173,7 +2176,7 @@ function AppContent() {
     } finally {
       setInstallingAppUpdate(false);
     }
-  }, [appUpdateChannel, appUpdateState, installingAppUpdate]);
+  }, [appUpdateChannel, appUpdateState, installingAppUpdate, confirm, message]);
 
   const handleNexusOAuthCallback = useCallback(async (callbackUrl: string) => {
     if (!callbackUrl.startsWith('simm://oauth/nexus/callback')) {
@@ -2628,7 +2631,7 @@ function AppContent() {
         ?? environments[0]?.id
         ?? null;
   const currentEnvironment = currentEnvironmentId ? getEnvironmentById(currentEnvironmentId) : null;
-  const isShellLaunchInProgress = currentEnvironmentId !== null && launchingEnvironmentId === currentEnvironmentId;
+  const isShellLaunchInProgress = currentEnvironmentId !== null && isLaunchPending(launchAttempts.get(currentEnvironmentId));
   const downloadsInProgress = downloads.filter((download) => (
     download.status === 'queued'
     || download.status === 'downloading'
@@ -2695,94 +2698,10 @@ function AppContent() {
     }
   }, [activeWorkspace, openEnvironmentsWorkspace, openWorkspace, selectEnvironmentForShell]);
 
-  const verifyShellMelonLoaderLaunch = useCallback(async (
-    environmentId: string,
-    launchStartedAt: number | undefined,
-  ) => {
-    if (!launchStartedAt) {
-      return;
-    }
-
-    try {
-      const verification = await ApiService.verifyMelonLoaderLaunch(environmentId, launchStartedAt, 20000);
-      if (verification.confirmed || verification.status === 'notInstalled') {
-        return;
-      }
-
-      await message(
-        `${verification.message}\n\nLog checked: ${verification.logPath}`,
-        {
-          title: currentEnvironment ? `MelonLoader Launch Not Confirmed: ${currentEnvironment.name}` : 'MelonLoader Launch Not Confirmed',
-          kind: 'warning',
-        },
-      );
-    } catch (error) {
-      logger.warn('Failed to verify MelonLoader launch after starting game', {
-        environmentId,
-        error: getErrorMessage(error, 'verification failed'),
-      });
-    }
-  }, [currentEnvironment]);
-
   const handleShellLaunchGame = useCallback(async () => {
-    if (!currentEnvironmentId) {
-      openWorkspace({ view: 'wizard' });
-      return;
-    }
-
-    try {
-      setLaunchingEnvironmentId(currentEnvironmentId);
-      const result = await ApiService.launchGame(currentEnvironmentId, 'steam');
-      if (!result.success) {
-        throw new Error('Launch request was not accepted.');
-      }
-      await verifyShellMelonLoaderLaunch(currentEnvironmentId, result.launchStartedAt);
-    } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to launch the selected environment.');
-      if (isSteamShortcutReloadError(errorMessage)) {
-        const shouldRestartSteam = await confirm(
-          `${errorMessage}\n\nRestart Steam now and retry the launch?`,
-          {
-            title: currentEnvironment ? `Restart Steam: ${currentEnvironment.name}` : 'Restart Steam',
-            kind: 'warning',
-          },
-        );
-
-        if (shouldRestartSteam) {
-          try {
-            const retryResult = await ApiService.launchGame(currentEnvironmentId, 'steam_restart');
-            if (!retryResult.success) {
-              await message('Launch request was not accepted.', {
-                title: currentEnvironment ? `Launch Failed: ${currentEnvironment.name}` : 'Launch Failed',
-                kind: 'error',
-              });
-            } else {
-              await verifyShellMelonLoaderLaunch(currentEnvironmentId, retryResult.launchStartedAt);
-            }
-          } catch (retryError) {
-            await message(
-              getErrorMessage(retryError, 'Failed to restart Steam and launch the selected environment.'),
-              {
-                title: currentEnvironment ? `Launch Failed: ${currentEnvironment.name}` : 'Launch Failed',
-                kind: 'error',
-              },
-            );
-          }
-        }
-        return;
-      }
-
-      await message(
-        errorMessage,
-        {
-          title: currentEnvironment ? `Launch Failed: ${currentEnvironment.name}` : 'Launch Failed',
-          kind: 'error',
-        },
-      );
-    } finally {
-      setLaunchingEnvironmentId(null);
-    }
-  }, [currentEnvironment, currentEnvironmentId, openWorkspace, verifyShellMelonLoaderLaunch]);
+    if (!currentEnvironment) { openWorkspace({ view: 'wizard' }); return; }
+    await requestLaunch(currentEnvironment, 'steam');
+  }, [currentEnvironment, openWorkspace, requestLaunch]);
   const telemetryUtilityAction: ShellUtilityAction = {
     key: 'telemetry',
     label: 'Telemetry',
@@ -2801,7 +2720,7 @@ function AppContent() {
       active: false,
       variant: 'btn-primary' as const,
       onClick: handleShellLaunchGame,
-      disabled: launchingEnvironmentId !== null || !currentEnvironmentId,
+      disabled: isShellLaunchInProgress || !currentEnvironmentId,
       title: currentEnvironment
         ? `Launch ${currentEnvironment.name} via Steam`
         : 'Select or create an environment to launch the game',
@@ -2910,6 +2829,7 @@ function AppContent() {
           </div>
         </div>
 
+        <GameLaunchStatus onViewLogs={(environmentId) => openWorkspace({ view: 'logs', environmentId })} />
         <Footer
           onOpenModUpdates={() => openLibraryWorkspace({
             initialTab: 'updates',
@@ -3223,7 +3143,7 @@ export function App() {
       <EnvironmentStoreProvider>
         <ModLibraryStoreProvider>
           <DownloadStatusStoreProvider>
-            <AppContent />
+            <AppDialogProvider><GameLaunchStoreProvider><AppContent /></GameLaunchStoreProvider></AppDialogProvider>
           </DownloadStatusStoreProvider>
         </ModLibraryStoreProvider>
       </EnvironmentStoreProvider>

@@ -189,6 +189,19 @@ pub async fn launch_game(
     };
 
     let launch_started_at = now_epoch_millis();
+    log::info!(
+        "Launch request: environment={}, method={}, route={}, started_at={}",
+        environment_id,
+        method_str,
+        if game_dir_for_launch.is_none() {
+            "steamApp"
+        } else if method_str == "direct" {
+            "direct"
+        } else {
+            "steamShortcut"
+        },
+        launch_started_at
+    );
     let result = fs_service
         .launch_game(game_dir_for_launch, Some(method_str))
         .await
@@ -201,6 +214,7 @@ pub async fn launch_game(
             launch_error
         })?;
 
+    log::info!("Launch dispatched: environment={}, method={}, started_at={}; game startup is not yet confirmed", environment_id, method_str, launch_started_at);
     Ok(serde_json::json!({
         "success": true,
         "executablePath": result,

@@ -2,6 +2,7 @@ import { Suspense, lazy, useState, useEffect, useRef, useCallback } from 'react'
 import type { ComponentType } from 'react';
 import { save } from '@tauri-apps/plugin-dialog';
 import { useEnvironmentStore } from '../stores/environmentStore';
+import { useGameLaunchStore, isLaunchPending, type LaunchMethod } from '../stores/gameLaunchStore';
 import { useModLibraryStore } from '../stores/modLibraryStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import type { Environment, MelonLoaderStatus, ModLibraryResult, ModProfileManifest, ModProfileItem } from '../types';
@@ -12,13 +13,12 @@ import { AnchoredContextMenu, type AnchoredContextMenuItem } from './AnchoredCon
 import { ProfileExportDialog } from './ProfileExportDialog';
 import { ApiService } from '../services/api';
 import { buildEnvironmentModSnapshot } from '../services/modLibrarySummary';
-import { logger } from '../services/logger';
 import {
   batchUpdateCheckEventName,
   batchUpdateCheckRef,
 } from '../services/updateCheckCoordinator';
 import { isSteamEnvironment, sortEnvironmentsForDisplay } from '../utils/environmentOrdering';
-import { getErrorMessage, isSteamShortcutReloadError } from '../utils/errors';
+import { getErrorMessage } from '../utils/errors';
 import { Icon } from './Icon';
 import {
   Dialog,
@@ -50,7 +50,7 @@ import {
 } from '../services/events';
 
 type InstalledModsResponse = Awaited<ReturnType<typeof ApiService.getMods>>;
-type LaunchMethod = 'steam' | 'steam_restart' | 'direct';
+
 type EnvironmentLocalProbeSnapshot = {
   unmanagedLocalMods: Map<string, number>;
   plugins: Map<string, number>;
@@ -333,6 +333,7 @@ export function EnvironmentList({
   onSelectEnvironment
 }: EnvironmentListProps) {
   const { environments, loading, error, progress, activeGameDownloadId, startDownload, verifyEnvironmentFiles, cancelDownload, deleteEnvironment, checkUpdate, updateEnvironment, refreshGameVersion, ensureEnvironments } = useEnvironmentStore();
+  const { attempts: launchAttempts, requestLaunch } = useGameLaunchStore();
   const { library, ensureLibrary, refreshLibrary } = useModLibraryStore();
   const { settings } = useSettingsStore();
   const [authModal, setAuthModal] = useState<{ isOpen: boolean; envId: string | null; waiting: boolean; message?: string; operation?: 'download' | 'verify' }>({ isOpen: false, envId: null, waiting: false });
@@ -476,8 +477,6 @@ export function EnvironmentList({
   const [showNightlyMelonLoaderBuilds, setShowNightlyMelonLoaderBuilds] = useState(false);
   const [selectedMelonLoaderVersion, setSelectedMelonLoaderVersion] = useState<Map<string, string>>(new Map());
   const [installingMelonLoader, setInstallingMelonLoader] = useState<Set<string>>(new Set());
-  const [launchingEnvironmentIds, setLaunchingEnvironmentIds] = useState<Set<string>>(new Set());
-  const launchingEnvironmentIdsRef = useRef<Set<string>>(new Set());
   const [messageOverlay, setMessageOverlay] = useState<{ isOpen: boolean; title: string; message: string; type: 'success' | 'error' | 'info' }>({ isOpen: false, title: '', message: '', type: 'info' });
   const [confirmOverlay, setConfirmOverlay] = useState<{ isOpen: boolean; title: string; message: string; confirmText?: string; cancelText?: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; env: Environment | null; deleteFiles: boolean }>({ isOpen: false, env: null, deleteFiles: false });
@@ -550,33 +549,6 @@ export function EnvironmentList({
   const showMessage = useCallback((title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setMessageOverlay({ isOpen: true, title, message, type });
   }, []);
-
-  const verifyMelonLoaderLaunch = useCallback(async (
-    env: Environment,
-    launchStartedAt: number | undefined,
-  ) => {
-    if (!launchStartedAt) {
-      return;
-    }
-
-    try {
-      const verification = await ApiService.verifyMelonLoaderLaunch(env.id, launchStartedAt, 20000);
-      if (verification.confirmed || verification.status === 'notInstalled') {
-        return;
-      }
-
-      showMessage(
-        `MelonLoader Launch Not Confirmed: ${env.name}`,
-        `${verification.message}\n\nLog checked: ${verification.logPath}`,
-        'info',
-      );
-    } catch (error) {
-      logger.warn('Failed to verify MelonLoader launch after starting game from environment card', {
-        environmentId: env.id,
-        error: getErrorMessage(error, 'verification failed'),
-      });
-    }
-  }, [showMessage]);
 
   const handleRepairMelonLoaderLaunchOptions = useCallback(async (environmentId: string) => {
     try {
@@ -1186,51 +1158,7 @@ export function EnvironmentList({
     }
   };
 
-  const handleLaunchGame = async (env: Environment, method: LaunchMethod = 'steam') => {
-    if (launchingEnvironmentIdsRef.current.has(env.id)) return;
-    launchingEnvironmentIdsRef.current.add(env.id);
-    setLaunchingEnvironmentIds((current) => new Set(current).add(env.id));
-
-    try {
-      const result = await ApiService.launchGame(env.id, method);
-      if (!result.success) {
-        showMessage(
-          'Launch Failed',
-          result.executablePath
-            ? `Executable found at ${result.executablePath}, but launch failed.`
-            : 'Game executable not found.',
-          'error'
-        );
-        return;
-      }
-
-      await verifyMelonLoaderLaunch(env, result.launchStartedAt);
-    } catch (err) {
-      const errorMessage = getErrorMessage(err, 'Unknown error');
-      if (method === 'steam' && isSteamShortcutReloadError(errorMessage)) {
-        setConfirmOverlay({
-          isOpen: true,
-          title: 'Restart Steam?',
-          message: `${errorMessage} SIMM can restart Steam now and retry the launch.`,
-          confirmText: 'Restart Steam',
-          onConfirm: () => {
-            setConfirmOverlay({ isOpen: false, title: '', message: '', onConfirm: () => {} });
-            void handleLaunchGame(env, 'steam_restart');
-          },
-        });
-        return;
-      }
-
-      showMessage('Launch Failed', `Failed to launch game: ${errorMessage}`, 'error');
-    } finally {
-      launchingEnvironmentIdsRef.current.delete(env.id);
-      setLaunchingEnvironmentIds((current) => {
-        const next = new Set(current);
-        next.delete(env.id);
-        return next;
-      });
-    }
-  };
+  const handleLaunchGame = (environment: Environment, method: LaunchMethod = 'steam') => requestLaunch(environment, method);
 
   const loadMelonLoaderReleases = useCallback(async (envId: string, includeNightly = false) => {
     setLoadingMelonLoaderReleases(prev => new Set(prev).add(envId));
@@ -2085,7 +2013,7 @@ export function EnvironmentList({
     const launchTitle = launchMethod === 'steam'
       ? 'Launch through Steam'
       : 'Launch this local install directly';
-    const isLaunching = launchingEnvironmentIds.has(env.id);
+    const isLaunching = isLaunchPending(launchAttempts.get(env.id));
     const modCount = modsCounts.get(env.id) ?? 0;
     const featuredDownloadCount = featuredDownloadCounts.get(env.id) ?? 0;
     const totalModCount = modCount + featuredDownloadCount;

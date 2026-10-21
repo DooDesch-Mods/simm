@@ -25,6 +25,7 @@ import type {
   MelonLoaderLaunchOptionsRepairResult,
   LaunchGameResult,
   MelonLoaderLaunchVerification,
+  GameLaunchInspection,
   ModProfileApplyRequest,
   ModProfileApplyResult,
   OneTimeDownloadCredentials,
@@ -1057,6 +1058,10 @@ export class ApiService {
     environmentId: string
   ): Promise<MelonLoaderLaunchOptionsRepairResult> {
     return invoke('repair_melonloader_launch_options', { environmentId });
+  }
+
+  static async inspectGameLaunch(environmentId: string, launchStartedAt: number): Promise<GameLaunchInspection> {
+    return invoke('inspect_game_launch', { environmentId, launchStartedAt });
   }
 
   static async verifyMelonLoaderLaunch(
