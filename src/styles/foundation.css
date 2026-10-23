@@ -335,6 +335,11 @@ body {
   color: var(--simm-warn-text);
 }
 
+.ui-tabs-line__count--danger {
+  background: var(--simm-danger-soft);
+  color: var(--simm-danger-text);
+}
+
 /* Panel: a bounded region with a job. Never nest panels. */
 .ui-panel {
   min-width: 0;

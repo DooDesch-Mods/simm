@@ -9,6 +9,7 @@ import {
   runtimeTagClass,
   summarizeEnvironmentStatus,
 } from './environmentPresentation';
+import { useEnvironmentTabCounts, type EnvironmentTabCounts } from './useEnvironmentTabCounts';
 
 export type EnvironmentWorkspaceTab = 'overview' | 'mods' | 'plugins' | 'userLibs' | 'config' | 'logs';
 
@@ -20,6 +21,36 @@ const TABS: ReadonlyArray<{ id: EnvironmentWorkspaceTab; label: string; icon: Ic
   { id: 'config', label: 'Config', icon: 'fileCode' },
   { id: 'logs', label: 'Logs', icon: 'fileLines' },
 ];
+
+interface TabBadge {
+  value: number;
+  tone: 'neutral' | 'attention' | 'danger';
+  label: string;
+}
+
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
+/**
+ * Only counts that say something: what a tab holds, or what needs a look.
+ * Overview and Config have no count worth showing.
+ */
+function tabBadge(tab: EnvironmentWorkspaceTab, counts: EnvironmentTabCounts, modUpdateCount: number): TabBadge | null {
+  switch (tab) {
+    case 'mods':
+      if (modUpdateCount > 0) {
+        return { value: modUpdateCount, tone: 'attention', label: plural(modUpdateCount, 'update available', 'updates available') };
+      }
+      return counts.mods ? { value: counts.mods, tone: 'neutral', label: plural(counts.mods, 'mod installed', 'mods installed') } : null;
+    case 'plugins':
+      return counts.plugins ? { value: counts.plugins, tone: 'neutral', label: plural(counts.plugins, 'plugin installed', 'plugins installed') } : null;
+    case 'userLibs':
+      return counts.userLibs ? { value: counts.userLibs, tone: 'neutral', label: plural(counts.userLibs, 'library installed', 'libraries installed') } : null;
+    case 'logs':
+      return counts.logErrors ? { value: counts.logErrors, tone: 'danger', label: plural(counts.logErrors, 'error in the latest log', 'errors in the latest log') } : null;
+    default:
+      return null;
+  }
+}
 
 interface EnvironmentWorkspaceHeaderProps {
   environment: Environment;
@@ -45,6 +76,7 @@ export function EnvironmentWorkspaceHeader({
   const status = summarizeEnvironmentStatus(environment, modUpdateCount);
   const gameVersion = environmentGameVersion(environment);
   const playable = environment.status === 'completed';
+  const counts = useEnvironmentTabCounts(environment.id, playable);
 
   return (
     <header className="env-header">
@@ -75,26 +107,30 @@ export function EnvironmentWorkspaceHeader({
         </SimmButton>
       </div>
       <nav className="ui-tabs-line env-header__tabs" aria-label={`${environment.name} sections`}>
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className="ui-tabs-line__tab"
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-            onClick={() => onSelectTab(tab.id)}
-          >
-            <Icon name={tab.icon} />
-            {tab.label}
-            {tab.id === 'mods' && modUpdateCount > 0 && (
-              <span
-                className="ui-tabs-line__count ui-tabs-line__count--attention"
-                aria-label={`${modUpdateCount} updates`}
-              >
-                {modUpdateCount}
-              </span>
-            )}
-          </button>
-        ))}
+        {TABS.map((tab) => {
+          const badge = tabBadge(tab.id, counts, modUpdateCount);
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              className="ui-tabs-line__tab"
+              aria-current={activeTab === tab.id ? 'page' : undefined}
+              onClick={() => onSelectTab(tab.id)}
+            >
+              <Icon name={tab.icon} />
+              {tab.label}
+              {badge && (
+                <span
+                  className={`ui-tabs-line__count ui-num${badge.tone === 'neutral' ? '' : ` ui-tabs-line__count--${badge.tone}`}`}
+                  aria-label={badge.label}
+                  title={badge.label}
+                >
+                  {badge.value > 99 ? '99+' : badge.value}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </nav>
     </header>
   );
