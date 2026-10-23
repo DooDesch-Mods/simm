@@ -15,22 +15,20 @@
   font-weight: 600;
 }
 
-/* One-line collection summary under the header */
-.telemetry-summary {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--simm-space-2) var(--simm-space-4);
-  min-height: 2.5rem;
-  padding: var(--simm-space-2) var(--simm-space-5);
-  border-bottom: 1px solid var(--simm-line);
+/* Monitoring state + sync, one muted line under the title. */
+.telemetry-status {
+  margin-top: 2px;
 }
 
-.telemetry-summary__attention {
+.telemetry-status__attention {
   display: inline-flex;
-  align-items: center;
-  gap: var(--simm-space-3);
-  margin-left: auto;
+  align-items: baseline;
+  gap: var(--simm-space-2);
+  color: var(--simm-warn-text);
+}
+
+.telemetry-status__attention [data-slot='button'][data-variant='link'] {
+  font-size: inherit;
 }
 
 .telemetry-feedback {
@@ -114,11 +112,9 @@
   border-bottom: 1px solid var(--simm-line);
 }
 
-.telemetry-events__toolbar select {
+.telemetry-events__select[data-slot='select-trigger'] {
   width: 13rem;
   min-width: 0;
-  height: var(--simm-control-h);
-  padding: 0 var(--simm-space-2);
 }
 
 .telemetry-events__count {
@@ -226,10 +222,8 @@
   font-size: var(--simm-text-xs);
 }
 
-.telemetry-preferences__row select {
+.telemetry-preferences__select[data-slot='select-trigger'] {
   width: 8rem;
-  height: var(--simm-control-h);
-  padding: 0 var(--simm-space-2);
 }
 
 .telemetry-switch[data-slot='switch'] [data-slot='switch-thumb'] {
@@ -305,12 +299,9 @@
   border-radius: var(--simm-radius);
 }
 
-.telemetry-mod-policy-dialog__table select {
+.telemetry-mod-policy__select[data-slot='select-trigger'] {
   width: 10.5rem;
-  height: var(--simm-control-h-sm);
   min-height: var(--simm-control-h-sm);
-  padding: 0 var(--simm-space-2);
-  font-size: var(--simm-text-xs);
 }
 
 .telemetry-mod-policy__name {
@@ -339,7 +330,7 @@
     border-bottom: 1px solid var(--simm-line);
   }
 
-  .telemetry-events__toolbar select {
+  .telemetry-events__select[data-slot='select-trigger'] {
     width: 11rem;
   }
 }

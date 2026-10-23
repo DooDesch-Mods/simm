@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { ApiService } from '../services/api';
 import type { GameSaveAccount, GameSaveBackup, GameSaveRestorePreview, GameSaveSlot } from '../types';
@@ -47,6 +48,46 @@ const formatShortDate = (value: string) => {
     ? value
     : parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
+
+type SavesSelectOption = { value: string; label: string };
+
+const RETENTION_OPTIONS: SavesSelectOption[] = [
+  { value: 'all', label: 'All backups' },
+  { value: '3', label: '3 newest' },
+  { value: '5', label: '5 newest' },
+  { value: '10', label: '10 newest' },
+  { value: '20', label: '20 newest' },
+];
+
+function SavesSelect({ value, options, onValueChange, disabled, className, size, id, label, title }: {
+  value: string;
+  options: SavesSelectOption[];
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+  className?: string;
+  size?: 'sm' | 'default';
+  id?: string;
+  label?: string;
+  title?: string;
+}) {
+  return (
+    <Select
+      items={options}
+      value={value}
+      disabled={disabled}
+      onValueChange={(next) => { if (typeof next === 'string') onValueChange(next); }}
+    >
+      <SelectTrigger id={id} size={size} className={className} aria-label={label} title={title}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="start">
+        <SelectGroup>
+          {options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
 
 const accountLabel = (account: GameSaveAccount) => account.displayName ?? `Steam ID ${account.steamId}`;
 
@@ -368,18 +409,15 @@ export function SaveBackupsWorkspace(_props: { onClose: () => void }) {
         </div>
         <div className="ui-toolbar">
           {status?.available && status.accounts.length > 0 && selectedAccount && (
-            <label className="save-backups-workspace__account">
-              <span className="sr-only">Steam account</span>
-              <select
-                value={selectedAccount.steamId}
-                onChange={(event) => setSelectedSteamId(event.target.value)}
-                disabled={selectionLocked}
-                aria-label="Steam account"
-                title={`Steam ID ${selectedAccount.steamId}`}
-              >
-                {status.accounts.map((account) => <option key={account.steamId} value={account.steamId}>{accountLabel(account)}</option>)}
-              </select>
-            </label>
+            <SavesSelect
+              className="save-backups-workspace__account"
+              label="Steam account"
+              title={`Steam ID ${selectedAccount.steamId}`}
+              value={selectedAccount.steamId}
+              options={status.accounts.map((account) => ({ value: account.steamId, label: accountLabel(account) }))}
+              onValueChange={setSelectedSteamId}
+              disabled={selectionLocked}
+            />
           )}
           <SimmButton
             type="button"
@@ -534,20 +572,16 @@ export function SaveBackupsWorkspace(_props: { onClose: () => void }) {
                     </dd>
                     <dt><label htmlFor="save-backups-retention">Keep</label></dt>
                     <dd>
-                      <select
+                      <SavesSelect
                         id="save-backups-retention"
+                        size="sm"
                         className="save-backups-workspace__inline-select"
-                        value={backupRetentionLimit ?? 'all'}
-                        onChange={(event) => setBackupRetentionLimit(event.target.value === 'all' ? null : Number(event.target.value))}
+                        value={backupRetentionLimit === null ? 'all' : String(backupRetentionLimit)}
+                        options={RETENTION_OPTIONS}
+                        onValueChange={(next) => setBackupRetentionLimit(next === 'all' ? null : Number(next))}
                         disabled={selectionLocked}
                         title="Applies when you back up. SIMM keeps the newest game-style snapshots."
-                      >
-                        <option value="all">All backups</option>
-                        <option value="3">3 newest</option>
-                        <option value="5">5 newest</option>
-                        <option value="10">10 newest</option>
-                        <option value="20">20 newest</option>
-                      </select>
+                      />
                     </dd>
                   </dl>
                 </section>
@@ -559,16 +593,14 @@ export function SaveBackupsWorkspace(_props: { onClose: () => void }) {
                   </p>
                   <div className="save-backups-workspace__restore-row">
                     {selectedGameBackup ? (
-                      <select
+                      <SavesSelect
+                        className="save-backups-workspace__restore-select"
+                        label="Select a game backup version to restore"
                         value={selectedGameBackup.path}
-                        onChange={(event) => setSelectedBackupPath(event.target.value)}
+                        options={selectedSlot.backups.map((backup, index) => ({ value: backup.path, label: backupVersionLabel(backup, index) }))}
+                        onValueChange={setSelectedBackupPath}
                         disabled={selectionLocked}
-                        aria-label="Select a game backup version to restore"
-                      >
-                        {selectedSlot.backups.map((backup, index) => (
-                          <option key={backup.path} value={backup.path}>{backupVersionLabel(backup, index)}</option>
-                        ))}
-                      </select>
+                      />
                     ) : (
                       <span className="save-backups-workspace__hint">Back up this slot to restore it later.</span>
                     )}

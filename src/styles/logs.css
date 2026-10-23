@@ -590,6 +590,13 @@
   flex-wrap: nowrap;
 }
 
+.logs-panel__inspector-facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--simm-space-4);
+  min-width: 0;
+}
+
 .logs-panel__file-path {
   font-size: var(--simm-text-xs);
 }
@@ -613,34 +620,65 @@
 
 /* ------------------------------------------------------------ Narrow workspace */
 
+/* Docked below the stream: capped at ~35% of the panel so the stream keeps
+   most of the height. Header and actions share one line; the message block
+   and the facts each scroll on their own. */
 @container (max-width: 74rem) {
   .logs-panel__shell--inspecting {
     grid-template-columns: 14rem minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(11rem, 42%);
+    grid-template-rows: minmax(0, 1fr) fit-content(35%);
     grid-template-areas:
       'rail viewer'
       'rail inspector';
   }
 
-  /* Docked below the stream: line text left, actions and facts right. */
   .logs-panel__shell--inspecting .logs-panel__inspector {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 17rem;
-    grid-template-rows: auto auto 1fr;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
       'head actions'
-      'content details'
-      'content mod';
-    align-content: start;
+      'content facts';
     gap: var(--simm-space-2) var(--simm-space-5);
+    padding: var(--simm-space-2) var(--simm-space-4) var(--simm-space-3);
     border-left: 0;
     border-top: 1px solid var(--simm-line);
+    overflow: hidden;
   }
 
-  .logs-panel__inspector-head { grid-area: head; }
-  .logs-panel__inspector-content { grid-area: content; max-height: none; min-height: 0; }
-  .logs-panel__inspector-head { padding-right: 0; }
-  .logs-panel__inspector-actions { grid-area: actions; justify-content: flex-end; padding-right: var(--simm-space-8); }
-  .logs-panel__inspector-details { grid-area: details; }
-  .logs-panel__inspector-mod { grid-area: mod; }
+  .logs-panel__inspector-head {
+    grid-area: head;
+    align-items: center;
+    padding-right: 0;
+  }
+
+  .logs-panel__inspector-titles {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--simm-space-3);
+  }
+
+  .logs-panel__inspector-titles h3 {
+    font-size: var(--simm-text-base);
+  }
+
+  .logs-panel__inspector-content {
+    grid-area: content;
+    max-height: 5.5rem;
+    min-height: 0;
+  }
+
+  .logs-panel__inspector-actions {
+    grid-area: actions;
+    justify-content: flex-end;
+    padding-right: var(--simm-space-8);
+  }
+
+  /* Sized by the message block, never the other way round. */
+  .logs-panel__inspector-facts {
+    grid-area: facts;
+    min-height: 0;
+    overflow: auto;
+    contain: size;
+  }
 }

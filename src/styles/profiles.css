@@ -391,9 +391,9 @@
   flex: 1 1 16rem;
 }
 
-.profiles-field select {
-  height: var(--simm-control-h);
-  padding: 0 var(--simm-space-2);
+.profiles-field__select[data-slot='select-trigger'] {
+  width: 100%;
+  font-weight: 400;
 }
 
 .profiles-form {

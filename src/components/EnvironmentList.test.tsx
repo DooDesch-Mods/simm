@@ -485,12 +485,22 @@ describe('EnvironmentList', () => {
     expect(screen.queryByText('100%')).toBeNull();
   });
 
-  it('opens per-install mod integration settings from the environment actions', async () => {
+  it('keeps tools out of the environment actions menu', async () => {
     render(<EnvironmentList />);
 
     const overview = await screen.findByRole('region', { name: `${completedEnv.name} overview` });
     fireEvent.keyDown(overview, { key: 'ContextMenu' });
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Mod Integration' }));
+    expect(await screen.findByRole('menuitem', { name: 'Rename' })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: 'Open Folder' })).toBeTruthy();
+    for (const tool of ['Share Profile', 'Verify Game Files', 'Mod Integration', 'Refresh Game Version']) {
+      expect(screen.queryByRole('menuitem', { name: tool })).toBeNull();
+    }
+  });
+
+  it('opens per-install mod integration settings from the Tools row', async () => {
+    render(<EnvironmentList />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Mod Integration' }));
 
     expect(await screen.findByRole('heading', { name: 'Mod Integration' })).toBeTruthy();
     expect(apiMocks.getModIntegrationConfig).toHaveBeenCalledWith('env-1');
@@ -555,8 +565,7 @@ describe('EnvironmentList', () => {
     render(<EnvironmentList />);
 
     expect(screen.queryByRole('button', { name: 'Verify' })).toBeNull();
-    fireEvent.click(await screen.findByRole('button', { name: 'More actions for Env One' }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Verify Game Files' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Verify Game Files' }));
     expect(await screen.findByText('Verify Game Files: Env One')).toBeTruthy();
     expect(screen.getByText(/reacquire missing or damaged official game files/i)).toBeTruthy();
 

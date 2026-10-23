@@ -5,10 +5,8 @@
   color: var(--simm-text-3);
 }
 
-.save-backups-workspace__account select {
-  height: var(--simm-control-h);
+.save-backups-workspace__account[data-slot='select-trigger'] {
   max-width: 16rem;
-  padding: 0 var(--simm-space-2);
 }
 
 .save-backups-workspace__message {
@@ -235,11 +233,8 @@
   font-size: var(--simm-text-xs);
 }
 
-.save-backups-workspace__inline-select {
-  height: var(--simm-control-h-sm);
+.save-backups-workspace__inline-select[data-slot='select-trigger'] {
   min-height: var(--simm-control-h-sm);
-  padding: 0 var(--simm-space-2);
-  font-size: var(--simm-text-sm);
 }
 
 .save-backups-workspace__hint {
@@ -255,11 +250,9 @@
   gap: var(--simm-space-2);
 }
 
-.save-backups-workspace__restore-row select {
+.save-backups-workspace__restore-select[data-slot='select-trigger'] {
   flex: 0 1 18rem;
   min-width: 12rem;
-  height: var(--simm-control-h);
-  padding: 0 var(--simm-space-2);
 }
 
 @container (max-width: 70rem) {

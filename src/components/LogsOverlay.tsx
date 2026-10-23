@@ -1825,6 +1825,7 @@ export function LogsOverlay({ isOpen, environmentId, onOpenModLibraryView }: Pro
               </SimmButton>
             </div>
 
+            <div className="logs-panel__inspector-facts">
             <section className="ui-inspector__section logs-panel__inspector-details">
               <h4 className="ui-section-title">Details</h4>
               <dl className="ui-kv">
@@ -1850,6 +1851,7 @@ export function LogsOverlay({ isOpen, environmentId, onOpenModLibraryView }: Pro
                 </dl>
               </section>
             )}
+            </div>
           </aside>
         )}
       </div>
