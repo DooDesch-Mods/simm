@@ -84,57 +84,6 @@
   scrollbar-color: var(--scrollbar-thumb-hover) var(--scrollbar-track-hover);
 }
 
-*::-webkit-scrollbar {
-  width: var(--scrollbar-size);
-  height: var(--scrollbar-size);
-  background: transparent;
-}
-
-*::-webkit-scrollbar-track {
-  background: var(--scrollbar-track-idle);
-  border-radius: var(--scrollbar-radius);
-}
-
-*:hover::-webkit-scrollbar-track,
-*:focus-within::-webkit-scrollbar-track {
-  background: var(--scrollbar-track-hover);
-}
-
-*::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb-idle);
-  border-radius: var(--scrollbar-radius);
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-*:hover::-webkit-scrollbar-thumb,
-*:focus-within::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--scrollbar-thumb-hover) 72%, rgba(255, 255, 255, 0.14)),
-    color-mix(in srgb, var(--scrollbar-thumb-hover) 92%, rgba(255, 255, 255, 0.05))
-  );
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-*::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--scrollbar-thumb-active) 82%, rgba(255, 255, 255, 0.18)),
-    color-mix(in srgb, var(--scrollbar-thumb-active) 100%, rgba(255, 255, 255, 0.08))
-  );
-}
-
-*::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
 body {
   margin: 0;
   min-width: 320px;
@@ -247,61 +196,6 @@ body::before {
 }
 
 /* Buttons */
-
-.btn {
-  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
-  border: 1px solid transparent;
-  padding: clamp(0.4em, 1vw, 0.5em) clamp(0.7em, 1.5vw, 0.9em);
-  font-size: clamp(0.8rem, 1.5vw, 0.85rem);
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(0.3rem, 0.75vw, 0.4rem);
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.btn-primary {
-  background-color: var(--primary-btn-color, #646cff);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-btn-hover, #535bf2);
-}
-
-.btn-secondary {
-  background-color: var(--btn-secondary-bg, #3a3a3a);
-  color: var(--btn-secondary-text, white);
-  border-color: var(--btn-secondary-border, #4a4a4a);
-}
-
-.btn-secondary:hover {
-  background-color: var(--btn-secondary-hover, #4a4a4a);
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.btn-small {
-  padding: 0.4em 0.8em;
-  font-size: 0.85rem;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 /* Environment List */
 
@@ -614,20 +508,6 @@ body {
   }
 }
 
-.environment-actions {
-  gap: var(--workspace-gap);
-}
-
-.settings-section {
-  border-radius: var(--workspace-card-radius);
-  border: 1px solid var(--workspace-stroke);
-  background: linear-gradient(180deg, rgba(23, 34, 49, 0.82), rgba(18, 28, 41, 0.82));
-}
-
-.settings-section {
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-}
-
 .workspace-panel-fallback {
   display: grid;
   place-items: center;
@@ -656,51 +536,7 @@ body {
   letter-spacing: 0.015em;
 }
 
-.settings-section {
-  background: var(--workspace-surface-card);
-  border-color: var(--workspace-stroke);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--app-bg-color, #0f141d) 38%, transparent);
-}
-
-.btn {
-  border-radius: 0.5rem;
-  border-color: color-mix(in srgb, var(--card-border-color, #2b3950) 84%, transparent);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--app-text-color, #eef5ff) 8%, transparent) inset;
-}
-
-.btn-primary {
-  background: linear-gradient(180deg, var(--primary-btn-hover, #5c98e6), var(--primary-btn-color, #4e8ad9));
-}
-
-.btn-primary:hover {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--primary-btn-hover, #5c98e6) 82%, white),
-    color-mix(in srgb, var(--primary-btn-color, #4e8ad9) 92%, white)
-  );
-}
-
-.btn-secondary {
-  background: linear-gradient(180deg, var(--btn-secondary-hover, #27354c), var(--btn-secondary-bg, #1a2434));
-  border-color: color-mix(in srgb, var(--btn-secondary-border, #2b3950) 88%, transparent);
-}
-
-.btn-secondary:hover {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--btn-secondary-hover, #27354c) 88%, var(--app-text-color, #eef5ff) 12%),
-    color-mix(in srgb, var(--btn-secondary-bg, #1a2434) 92%, var(--app-text-color, #eef5ff) 8%)
-  );
-}
-
 /* Desktop-style environment list */
-
-@media (max-width: 980px) {
-
-  .settings-section {
-    padding: 0.85rem;
-  }
-}
 
 @theme inline {
   --font-heading: var(--font-sans);
@@ -745,40 +581,6 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -790,54 +592,3 @@ body {
     @apply font-sans;
   }
 }
-
-/*
- * Window-relative desktop sizing
- *
- * The application window is the visual viewport in Tauri.  Keep the existing
- * SIMM composition, then let shared shell and workspace measurements contract
- * together as that viewport gets smaller.  Individual workspaces can still
- * use their own container queries for data-dense layouts.
- */
-
-/* Buttons and editable controls are the most repeated typography in SIMM.
- * Scale these locally with the window rather than changing the document root,
- * which keeps high-DPI desktop sizing stable. */
-
-/* This must follow the window-relative expanded sidebar rule. Without the
- * explicit state selector, the expanded width wins after a collapse and the
- * workspace never receives the recovered horizontal space. */
-
-/* The shell main owns the available workspace width.  Save Management needs
- * that parent as its query container: a container cannot query its own size. */
-
-.environment-actions {
-  gap: var(--simm-workspace-gap);
-  padding: clamp(0.65rem, 1.4dvh, 1rem) clamp(0.75rem, 1.7dvw, 1.25rem);
-}
-
-/* Short windows retain the existing Home composition, but the complete scaled
- * dashboard follows the window's normal workspace scrollbar instead of being
- * clipped by a fixed-height grid. */
-
-/* The Save Management workspace retains its current master/detail structure
- * through the Tauri minimum width.  Its compact threshold now scales the
- * columns and context together rather than stacking both full-height panels
- * into insufficient grid rows. */
-
-/* Keep the same compact Save Management panels when a future platform permits
- * a still narrower content area; content follows in document order instead of
- * overlapping. */
-
-/* Long dialogs scale to the actual window.  The shared app-dialog anatomy is
- * header / body / footer, so only the body may consume remaining height. */
-
-@media (max-height: 42.5rem) {
-
-  /* Directory pickers keep their title and actions in view at the Tauri
-   * minimum height; only the folder list receives the remaining space. */
-}
-
-/* Local mod integration */
-
-/* Launch feedback stays in the app flow and never takes focus from the game. */
