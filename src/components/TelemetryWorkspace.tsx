@@ -9,6 +9,7 @@ import { Icon } from './Icon';
 import { SimmButton, SimmDialogContent } from './primitives';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,56 @@ const TELEMETRY_TIME_FORMAT = new Intl.DateTimeFormat('en-US', {
 function formatTelemetryTime(value: string): string {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : TELEMETRY_TIME_FORMAT.format(parsed);
+}
+
+type TelemetrySelectOption = { value: string; label: string };
+
+const SEVERITY_OPTIONS: TelemetrySelectOption[] = [
+  { value: 'all', label: 'All levels' },
+  { value: 'WARN', label: 'Warnings' },
+  { value: 'ERROR', label: 'Errors' },
+  { value: 'FATAL', label: 'Fatal' },
+];
+const RETENTION_OPTIONS: TelemetrySelectOption[] = [7, 14, 30, 90].map((days) => ({ value: String(days), label: `${days} days` }));
+const RULE_SCOPE_OPTIONS: TelemetrySelectOption[] = [
+  { value: 'environment', label: 'This environment' },
+  { value: 'global', label: 'All environments' },
+];
+const DATA_RULE_OPTIONS: TelemetrySelectOption[] = [
+  { value: 'automatic', label: 'Automatic' },
+  { value: 'share', label: 'Share' },
+  { value: 'local_only', label: 'Local only' },
+  { value: 'ignore', label: 'Ignore' },
+];
+// The shared Select treats an empty string as "no value", so "All environments" uses a sentinel.
+const ALL_ENVIRONMENTS = '__all__';
+
+function TelemetrySelect({ label, value, options, onValueChange, disabled, size, className }: {
+  label: string;
+  value: string;
+  options: TelemetrySelectOption[];
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+  size?: 'sm' | 'default';
+  className?: string;
+}) {
+  return (
+    <Select
+      items={options}
+      value={value}
+      disabled={disabled}
+      onValueChange={(next) => { if (typeof next === 'string') onValueChange(next); }}
+    >
+      <SelectTrigger size={size} className={className} aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="start">
+        <SelectGroup>
+          {options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
 }
 
 function describeSeverity(severity: string): { label: string; tone: 'danger' | 'warn' | 'info' } {
@@ -122,7 +173,7 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return;
       if (exportPreview || modPolicyOpen || clearConfirmationOpen || preferencesOpen || moreMenuOpen) return;
-      if (document.querySelector('[data-slot="popover-content"], [data-slot="dropdown-menu-content"], [role="dialog"], [role="alertdialog"]')) return;
+      if (document.querySelector('[data-slot="popover-content"], [data-slot="dropdown-menu-content"], [data-slot="select-content"], [role="dialog"], [role="alertdialog"]')) return;
       onClose();
     };
     document.addEventListener('keydown', handleEscape, true);
@@ -255,6 +306,10 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
     } finally { setBusy(false); }
   };
 
+  const environmentOptions = useMemo<TelemetrySelectOption[]>(() => [
+    { value: ALL_ENVIRONMENTS, label: 'All environments' },
+    ...environments.map((environment) => ({ value: environment.id, label: environment.name })),
+  ], [environments]);
   const selectedEnvironmentName = environments.find((environment) => environment.id === environmentId)?.name;
   const retentionDays = preferences?.retentionDays ?? 30;
   const showDeveloperUpload = import.meta.env.DEV;
@@ -264,12 +319,20 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
       <header className="ui-page-header">
         <div className="ui-page-header__titles">
           <h2 className="ui-page-title">Telemetry</h2>
-          <p className="ui-page-subtitle">Warnings and errors from Latest.log while a game runs. Kept on this device.</p>
+          <div className="ui-meta telemetry-status" aria-label="Telemetry status">
+            <span className={`ui-status ${collectionEnabled && activeCount > 0 ? 'ui-status--ok' : 'ui-status--muted'}`}>
+              {!collectionEnabled ? 'Collection off' : activeCount > 0 ? `${activeCount} monitoring` : 'Waiting for game'}
+            </span>
+            <span>{collectionEnabled ? syncLabel : 'Nothing is recorded'}</span>
+            {failedUpload && (
+              <span className="telemetry-status__attention">
+                Upload failed, retries with the next update check
+                <SimmButton variant="link" disabled={busy || !collectionEnabled || !uploadEnabled} onClick={() => void retryFailedUpload()}>Retry Failed Upload</SimmButton>
+              </span>
+            )}
+          </div>
         </div>
         <div className="ui-toolbar">
-          <span className={`ui-status ${activeCount > 0 ? 'ui-status--ok' : 'ui-status--muted'}`}>
-            {activeCount > 0 ? `${activeCount} monitoring` : 'Waiting for game'}
-          </span>
           <Popover open={preferencesOpen} onOpenChange={setPreferencesOpen}>
             <PopoverTrigger
               render={<button type="button" data-slot="button" data-variant="outline" data-size="default" disabled={!telemetryAvailable} />}
@@ -303,12 +366,17 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
                 disabled={busy || !collectionEnabled}
                 onChange={(checked) => void updatePreferences({ errorExcerptsEnabled: checked })}
               />
-              <label className="telemetry-preferences__row">
+              <div className="telemetry-preferences__row">
                 <span className="telemetry-preferences__label">Keep local history</span>
-                <select value={retentionDays} disabled={busy} onChange={(event) => void updatePreferences({ retentionDays: Number(event.target.value) })}>
-                  <option value={7}>7 days</option><option value={14}>14 days</option><option value={30}>30 days</option><option value={90}>90 days</option>
-                </select>
-              </label>
+                <TelemetrySelect
+                  label="Keep local history"
+                  className="telemetry-preferences__select"
+                  value={String(retentionDays)}
+                  options={RETENTION_OPTIONS}
+                  disabled={busy}
+                  onValueChange={(next) => void updatePreferences({ retentionDays: Number(next) })}
+                />
+              </div>
             </PopoverContent>
           </Popover>
           <SimmButton variant="outline" disabled={busy || !telemetryAvailable || !collectionEnabled} onClick={() => void viewExport()}>View Export</SimmButton>
@@ -334,6 +402,13 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
                 </>
               )}
               <DropdownMenuItem
+                disabled={busy || !telemetryAvailable}
+                onClick={() => void openModPolicyManager()}
+              >
+                Manage Mod Data…
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
                 variant="destructive"
                 disabled={busy || !telemetryAvailable || events.length === 0}
                 onClick={() => setClearConfirmationOpen(true)}
@@ -344,24 +419,6 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
           </DropdownMenu>
         </div>
       </header>
-
-      <div className="telemetry-summary" aria-label="Captured telemetry summary">
-        <span className={`ui-status ${collectionEnabled ? 'ui-status--ok' : 'ui-status--muted'}`}>
-          {collectionEnabled ? 'Collecting' : 'Collection off'}
-        </span>
-        <span className="ui-meta">
-          <span>{collectionEnabled ? syncLabel : 'Nothing is recorded'}</span>
-          <span>Keeps {retentionDays} days</span>
-          <span>{capturedSessionCount} ended {capturedSessionCount === 1 ? 'session' : 'sessions'}</span>
-          <span>{capturedModCount} mod entries</span>
-        </span>
-        {failedUpload && (
-          <span className="telemetry-summary__attention">
-            <span className="ui-status ui-status--warn">Upload failed, retries with the next update check</span>
-            <SimmButton variant="outline" size="sm" disabled={busy || !collectionEnabled || !uploadEnabled} onClick={() => void retryFailedUpload()}>Retry Failed Upload</SimmButton>
-          </span>
-        )}
-      </div>
 
       {feedback && (
         <div className={`telemetry-feedback${feedbackTone === 'error' ? ' telemetry-feedback--error' : ''}`}>
@@ -394,22 +451,20 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
 
         <section className="telemetry-events" aria-label="Telemetry event history">
           <div className="ui-toolbar telemetry-events__toolbar">
-            <select value={environmentId} onChange={(event) => setEnvironmentId(event.target.value)} aria-label="Telemetry environment">
-              <option value="">All environments</option>
-              {environments.map((environment) => <option key={environment.id} value={environment.id}>{environment.name}</option>)}
-            </select>
-            <select value={severity} onChange={(event) => setSeverity(event.target.value)} aria-label="Telemetry severity">
-              <option value="all">All levels</option><option value="WARN">Warnings</option><option value="ERROR">Errors</option><option value="FATAL">Fatal</option>
-            </select>
-            <SimmButton
-              variant="outline"
-              size="sm"
-              disabled={busy || !telemetryAvailable || !environmentId}
-              title={environmentId ? undefined : 'Choose an environment first'}
-              onClick={() => void openModPolicyManager()}
-            >
-              Manage Mod Data
-            </SimmButton>
+            <TelemetrySelect
+              label="Telemetry environment"
+              className="telemetry-events__select"
+              value={environmentId || ALL_ENVIRONMENTS}
+              options={environmentOptions}
+              onValueChange={(next) => setEnvironmentId(next === ALL_ENVIRONMENTS ? '' : next)}
+            />
+            <TelemetrySelect
+              label="Telemetry severity"
+              className="telemetry-events__select"
+              value={severity}
+              options={SEVERITY_OPTIONS}
+              onValueChange={setSeverity}
+            />
             <span className="ui-toolbar__spacer" />
             <span className="telemetry-events__count">{filteredEvents.length} shown</span>
           </div>
@@ -505,14 +560,26 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
                             </div>
                           </td>
                           <td>
-                            <select aria-label={`Rule scope for ${policy.modEntry.name}`} value={scope} disabled={busy} onChange={(event) => setModRuleScopes((current) => ({ ...current, [policy.modEntry.modKey]: event.target.value as 'environment' | 'global' }))}>
-                              <option value="environment">This environment</option><option value="global">All environments</option>
-                            </select>
+                            <TelemetrySelect
+                              label={`Rule scope for ${policy.modEntry.name}`}
+                              size="sm"
+                              className="telemetry-mod-policy__select"
+                              value={scope}
+                              options={RULE_SCOPE_OPTIONS}
+                              disabled={busy}
+                              onValueChange={(next) => setModRuleScopes((current) => ({ ...current, [policy.modEntry.modKey]: next as 'environment' | 'global' }))}
+                            />
                           </td>
                           <td>
-                            <select aria-label={`Data rule for ${policy.modEntry.name}`} value={selectedMode} disabled={busy} onChange={(event) => void saveModPolicy(policy, event.target.value as 'automatic' | TelemetryModCaptureMode)}>
-                              <option value="automatic">Automatic</option><option value="share">Share</option><option value="local_only">Local only</option><option value="ignore">Ignore</option>
-                            </select>
+                            <TelemetrySelect
+                              label={`Data rule for ${policy.modEntry.name}`}
+                              size="sm"
+                              className="telemetry-mod-policy__select"
+                              value={selectedMode}
+                              options={DATA_RULE_OPTIONS}
+                              disabled={busy}
+                              onValueChange={(next) => void saveModPolicy(policy, next as 'automatic' | TelemetryModCaptureMode)}
+                            />
                           </td>
                         </tr>
                       );

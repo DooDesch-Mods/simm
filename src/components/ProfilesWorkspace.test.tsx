@@ -285,12 +285,13 @@ describe('ProfilesWorkspace', () => {
     expect(screen.getAllByText('Default').length).toBeGreaterThanOrEqual(2);
 
     await openApplyFlow();
-    const targetSelect = screen.getByLabelText(/target environment/i);
-    const monoOption = within(targetSelect).getByRole('option', { name: /Mono Test/i }) as HTMLOptionElement;
-    expect(monoOption.disabled).toBe(true);
+    fireEvent.click(screen.getByRole('combobox', { name: /target environment/i }));
+    const monoOption = await screen.findByRole('option', { name: /Mono Test/i });
+    expect(monoOption).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
 
     fireEvent.click(screen.getByRole('button', { name: /Default Mono/i }));
-    await waitFor(() => expect(screen.getByLabelText(/target environment/i)).toHaveValue('mono-env'));
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /target environment/i })).toHaveTextContent('Mono Test'));
   });
 
   it('initializes from the preferred environment runtime', async () => {
@@ -300,7 +301,7 @@ describe('ProfilesWorkspace', () => {
     expect(screen.getByRole('button', { name: /Default IL2CPP/i })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Default Mono' })).toBeTruthy();
     await openApplyFlow();
-    expect(screen.getByLabelText(/target environment/i)).toHaveValue('mono-env');
+    expect(screen.getByRole('combobox', { name: /target environment/i })).toHaveTextContent('Mono Test');
   });
 
   it('selects a requested collection profile when opened from Downloads', async () => {
@@ -1052,12 +1053,12 @@ describe('ProfilesWorkspace', () => {
     await screen.findByRole('button', { name: /Default Mono/i });
     await openApplyFlow();
     await waitFor(() => {
-      expect(screen.getByLabelText(/target environment/i)).toHaveValue('mono-env');
+      expect(screen.getByRole('combobox', { name: /target environment/i })).toHaveTextContent('Mono Test');
     });
     fireEvent.click(screen.getByRole('button', { name: /^New Profile$/i }));
     await screen.findByRole('checkbox', { name: /Mono Extra/i });
     expect(apiMocks.exportEnvironmentProfile).toHaveBeenCalledWith('mono-env');
-    expect(screen.getByLabelText(/source environment/i)).toHaveValue('mono-env');
+    expect(screen.getByRole('combobox', { name: /source environment/i })).toHaveTextContent('Mono Test');
     fireEvent.change(screen.getByPlaceholderText('New profile name'), {
       target: { value: 'Custom Mono' },
     });

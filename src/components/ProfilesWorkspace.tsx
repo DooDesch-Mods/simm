@@ -3,6 +3,7 @@ import { open, save } from '@tauri-apps/plugin-dialog';
 import { useAppDialogs } from './AppDialogProvider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { ApiService } from '../services/api';
@@ -195,6 +196,37 @@ function itemFileIdentity(item: ModProfileItem): string {
 }
 
 type ProfileFlow = 'apply' | 'create' | 'update' | null;
+
+type ProfilesSelectOption = { value: string; label: string; disabled?: boolean };
+
+/** Environment picker on the shared Select; an empty value shows "Choose environment". */
+function ProfilesEnvironmentSelect({ label, value, options, onValueChange, disabled }: {
+  label: string;
+  value: string;
+  options: ProfilesSelectOption[];
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Select
+      items={options}
+      value={value || null}
+      disabled={disabled}
+      onValueChange={(next) => { if (typeof next === 'string') onValueChange(next); }}
+    >
+      <SelectTrigger className="profiles-field__select" aria-label={label}>
+        <SelectValue placeholder="Choose environment" />
+      </SelectTrigger>
+      <SelectContent align="start">
+        <SelectGroup>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value} disabled={option.disabled}>{option.label}</SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
 
 export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: ProfilesWorkspaceProps) {
   const { confirm } = useAppDialogs();
@@ -1128,27 +1160,26 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
   ] : [];
 
   const renderTargetSelect = (label: string) => (
-    <label className="profiles-field">
-      <span>{label}</span>
-      <select
+    <div className="profiles-field">
+      <span aria-hidden="true">{label}</span>
+      <ProfilesEnvironmentSelect
+        label={label}
         value={targetEnvironmentId}
-        onChange={(event) => {
-          setTargetEnvironmentId(event.target.value);
+        onValueChange={(environmentId) => {
+          setTargetEnvironmentId(environmentId);
           setUserChoseTarget(true);
         }}
         disabled={!selectedProfile || environmentsLoading || busy}
-      >
-        <option value="">Choose environment</option>
-        {environments.map((environment) => {
+        options={environments.map((environment) => {
           const compatible = isCompatibleEnvironment(environment, selectedProfile);
-          return (
-            <option key={environment.id} value={environment.id} disabled={!compatible}>
-              {environment.name}{compatible ? '' : ` (${runtimeLabel(environment.runtime)}, not compatible)`}
-            </option>
-          );
+          return {
+            value: environment.id,
+            label: `${environment.name}${compatible ? '' : ` (${runtimeLabel(environment.runtime)}, not compatible)`}`,
+            disabled: !compatible,
+          };
         })}
-      </select>
-    </label>
+      />
+    </div>
   );
 
   const renderDiffItem = (item: ModProfileItem) => (
@@ -1481,27 +1512,24 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
       </header>
 
       <div className="profiles-form">
-        <label className="profiles-field">
-          <span>Source environment</span>
-          <select
+        <div className="profiles-field">
+          <span aria-hidden="true">Source environment</span>
+          <ProfilesEnvironmentSelect
+            label="Source environment"
             value={createEnvironmentId}
-            onChange={(event) => {
-              const environmentId = event.target.value;
+            onValueChange={(environmentId) => {
               selectCreateEnvironment(environmentId);
               if (environmentId) void runAction('createLoad', () => loadCreateDraft(environmentId));
             }}
             disabled={environmentsLoading || busy}
-          >
-            <option value="">Choose environment</option>
-            {environments.map((environment) => (
-              <option key={environment.id} value={environment.id}>
-                {environment.name.toLowerCase().includes(runtimeLabel(environment.runtime).toLowerCase())
-                  ? environment.name
-                  : `${environment.name} (${runtimeLabel(environment.runtime)})`}
-              </option>
-            ))}
-          </select>
-        </label>
+            options={environments.map((environment) => ({
+              value: environment.id,
+              label: environment.name.toLowerCase().includes(runtimeLabel(environment.runtime).toLowerCase())
+                ? environment.name
+                : `${environment.name} (${runtimeLabel(environment.runtime)})`,
+            }))}
+          />
+        </div>
         <label className="profiles-field profiles-field--grow">
           <span>Profile name</span>
           <Input
