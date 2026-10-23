@@ -397,24 +397,3 @@
     gap: var(--simm-space-4);
   }
 }
-
-/* ------------------------------------------------------------------
- * Shared legacy classes still used by Welcome. Owned here only because
- * they carry the settings- prefix; delete once Welcome stops using them.
- */
-
-.settings-eyebrow {
-  color: var(--simm-text-3);
-  font-size: var(--simm-text-xs);
-  font-weight: 500;
-}
-
-.settings-error-banner {
-  margin: var(--simm-space-3) var(--simm-space-5) 0;
-  padding: var(--simm-space-3) var(--simm-space-4);
-  border: 1px solid color-mix(in srgb, var(--simm-danger) 45%, transparent);
-  border-radius: var(--simm-radius);
-  background: var(--simm-danger-soft);
-  color: var(--simm-danger-text);
-  font-size: var(--simm-text-sm);
-}
