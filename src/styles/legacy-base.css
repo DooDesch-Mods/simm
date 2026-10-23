@@ -180,25 +180,6 @@ body::before {
 
 /* Keep copyable, user-authored, and diagnostic content intentionally selectable. */
 
-.app :is(
-  input,
-  textarea,
-  select,
-  [contenteditable="true"],
-  .description-text,
-  .workspace-collection__row-summary,
-  .workspace-inspector-card__summary,
-  .workspace-version-row__summary,
-  .mod-card-summary,
-  .logs-panel__line-content,
-  .logs-panel__inspector-content,
-  .logs-panel__file-path,
-  .selectable-text,
-  pre
-) {
-  user-select: text;
-}
-
 /* Status Bar (compact footer) */
 
 .btn-icon-small {
@@ -324,52 +305,6 @@ body::before {
 
 /* Environment List */
 
-.btn-edit-name {
-  background: none;
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-secondary, #cccccc);
-  padding: clamp(0.2rem, 0.4vw, 0.25rem) clamp(0.35rem, 0.65vw, 0.4rem);
-  border-radius: clamp(0.25rem, 0.5vw, 0.375rem);
-  cursor: pointer;
-  font-size: clamp(0.7rem, 1.2vw, 0.75rem);
-  transition: all 0.2s;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: clamp(1.5rem, 2.5vw, 1.75rem);
-  height: clamp(1.5rem, 2.5vw, 1.75rem);
-}
-
-.btn-edit-name:hover {
-  background-color: var(--btn-secondary-bg, #3a3a3a);
-  border-color: var(--btn-secondary-hover, #4a4a4a);
-  color: var(--app-text-color, #ffffff);
-}
-
-.btn-edit-description {
-  background: none;
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-secondary, #cccccc);
-  padding: clamp(0.25rem, 0.5vw, 0.375rem) clamp(0.4rem, 0.75vw, 0.5rem);
-  border-radius: clamp(0.25rem, 0.5vw, 0.375rem);
-  cursor: pointer;
-  font-size: clamp(0.75rem, 1.2vw, 0.8rem);
-  transition: all 0.2s;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: clamp(1.75rem, 3vw, 2rem);
-  height: clamp(1.75rem, 3vw, 2rem);
-}
-
-.btn-edit-description:hover {
-  background-color: var(--btn-secondary-bg, #3a3a3a);
-  border-color: var(--btn-secondary-hover, #4a4a4a);
-  color: var(--app-text-color, #ffffff);
-}
-
 /* Every direct child of the grid fills its cell completely */
 
 /* The Launch Game cell is a positioned flex container so the
@@ -431,12 +366,6 @@ body::before {
 
 /* Progress Bar */
 
-.progress-info {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-color, #3a3a3a);
-}
-
 .progress-bar {
   width: 100%;
   height: 8px;
@@ -446,28 +375,9 @@ body::before {
   margin-bottom: 0.5rem;
 }
 
-.progress-fill {
-  height: 100%;
-  background-color: var(--simm-accent);
-  transition: width 0.3s ease;
-  min-width: 0;
-  max-width: 100%;
-}
-
 /* Modal */
 
 /* Nested modal overlay for modals within modals */
-
-.progress-bar--indeterminate .progress-fill {
-  width: 45% !important;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--primary-btn-color, #4e8ad9) 20%, transparent),
-    var(--primary-btn-hover, #5c98e6),
-    color-mix(in srgb, var(--primary-btn-color, #4e8ad9) 20%, transparent)
-  );
-  animation: downloads-panel-progress 1.1s ease-in-out infinite;
-}
 
 /* Short blocking decisions stay centered. Long workflow dialogs retain the
  * shared top alignment so their headers and scroll regions remain predictable. */
@@ -503,114 +413,15 @@ body::before {
 
 /* Accounts */
 
-.account-status-pill,
-.account-capability-pill,
-.settings-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.42rem;
-  padding: 0.34rem 0.68rem;
-  border-radius: 999px;
-  font-size: 0.76rem;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.account-status-pill--connected,
-.settings-status-pill--online {
-  color: #a4efb7;
-  border: 1px solid rgba(80, 192, 116, 0.34);
-  background: rgba(18, 67, 42, 0.7);
-}
-
-.account-status-pill--disconnected,
-.settings-status-pill--offline {
-  color: #ffb1b1;
-  border: 1px solid rgba(198, 84, 84, 0.34);
-  background: rgba(73, 24, 29, 0.7);
-}
-
-.account-service-error,
-.settings-service-health__error {
-  color: #ffcbcb;
-  border: 1px solid rgba(198, 84, 84, 0.28);
-  background: rgba(73, 24, 29, 0.56);
-}
-
 /* Help Overlay */
 
 /* Wizard */
 
 /* Forms */
 
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: clamp(0.3rem, 0.75vw, 0.375rem);
-  font-weight: 500;
-  color: var(--app-text-color, #ffffff);
-  font-size: clamp(0.8rem, 1.5vw, 0.875rem);
-}
-
 /* Checkbox labels should be inline with the checkbox */
 
-.form-group label input[type="checkbox"] {
-  width: auto;
-  margin: 0;
-  margin-right: 0.5rem;
-  cursor: pointer;
-  vertical-align: middle;
-  flex-shrink: 0;
-}
-
 /* Make labels containing checkboxes inline-flex */
-
-.form-group label:has(input[type="checkbox"]) {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  margin-bottom: 0;
-}
-
-.form-group label:has(input[type="checkbox"]) input[type="checkbox"] {
-  margin-right: 0;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: clamp(0.4rem, 1vw, 0.5rem) clamp(0.6rem, 1.5vw, 0.75rem);
-  background-color: var(--input-bg-color, #1a1a1a);
-  border: 1px solid var(--input-border-color, #3a3a3a);
-  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
-  color: var(--input-text-color, #ffffff);
-  font-size: clamp(0.8rem, 1.5vw, 0.85rem);
-  font-family: inherit;
-  box-sizing: border-box;
-}
-
-.form-group input[type="text"] {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #646cff;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
-}
 
 /* Settings */
 
@@ -664,19 +475,6 @@ body::before {
   font-size: 0.85rem;
 }
 
-@media (max-width: 900px) {
-
-  .help-overview,
-  .help-layout,
-  .accounts-overview,
-  .account-service-card__header,
-  .account-service-card__actions,
-  .help-card-header,
-  .help-task-card__header {
-    display: grid;
-  }
-}
-
 /* Utilities */
 
 .loading {
@@ -694,25 +492,6 @@ body::before {
   margin: 1rem 0;
 }
 
-.error-message {
-  background-color: #5a1a1a;
-  border: 1px solid #7a2a2a;
-  color: #ffaaaa;
-  padding: 1rem;
-  border-radius: 6px;
-  margin: 1.5rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #888;
-}
-
-.empty-state p {
-  font-size: 1.1rem;
-}
-
 /* Loading Spinner Animation */
 
 @keyframes spin {
@@ -725,7 +504,6 @@ body::before {
 /* Smooth theme transitions for theme-aware elements */
 
 .app,
-.environment-card,
 .modal-content,
 .btn,
 input,
@@ -784,16 +562,6 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .app-shell-sidebar,
-  .app-shell-sidebar__section,
-  .app-shell-sidebar__section-toggle,
-  .app-shell-sidebar__section-body,
-  .app-shell-sidebar__environment-item,
-  .app-shell-sidebar__tool-item,
-  .app-shell-sidebar__environment-icon,
-  .app-shell-sidebar__environment-name,
-  .app-shell-sidebar__environment-meta,
-  .app-shell-sidebar__tool-item span:not(.app-shell-sidebar__tool-badge),
-  .app-shell-sidebar__tool-badge,
   .downloads-popover {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
@@ -822,68 +590,6 @@ body {
   animation: skeleton-shimmer 1.35s ease-in-out infinite;
 }
 
-.loading-skeleton--env-name {
-  width: min(8.5rem, 72%);
-  height: 0.82rem;
-}
-
-.loading-skeleton--env-meta {
-  width: 2.6rem;
-  height: 1.2rem;
-  border-radius: 0.32rem;
-}
-
-.loading-skeleton--stat {
-  width: 2.1rem;
-  height: 1.9rem;
-}
-
-.loading-skeleton--wide {
-  width: 6.6rem;
-  height: 1.45rem;
-}
-
-.loading-skeleton--text {
-  width: 5.8rem;
-  height: 0.72rem;
-}
-
-.loading-skeleton--title {
-  width: min(13rem, 56vw);
-  height: 1.05rem;
-}
-
-.loading-skeleton--line {
-  width: min(24rem, 100%);
-  height: 0.78rem;
-}
-
-.loading-skeleton--short {
-  width: min(15rem, 70%);
-}
-
-.loading-skeleton--eyebrow {
-  width: 4.8rem;
-  height: 0.7rem;
-}
-
-.loading-skeleton--heading {
-  width: min(17rem, 72vw);
-  height: 1.45rem;
-}
-
-.loading-skeleton--icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.55rem;
-}
-
-.loading-skeleton--pill {
-  width: 5.2rem;
-  height: 1.35rem;
-  border-radius: 0.35rem;
-}
-
 @keyframes skeleton-shimmer {
   0% {
     transform: translateX(-100%);
@@ -908,49 +614,18 @@ body {
   }
 }
 
-.modal-actions,
-.form-actions,
 .environment-actions {
   gap: var(--workspace-gap);
 }
 
-.mod-card,
-.branch-card,
-.settings-section,
-.help-section,
-.account-service-card,
-.account-note-card {
+.settings-section {
   border-radius: var(--workspace-card-radius);
   border: 1px solid var(--workspace-stroke);
   background: linear-gradient(180deg, rgba(23, 34, 49, 0.82), rgba(18, 28, 41, 0.82));
 }
 
-.mod-card,
-.branch-card,
 .settings-section {
   transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-}
-
-.mod-card:hover,
-.branch-card:hover {
-  border-color: rgba(134, 171, 223, 0.46);
-  transform: translateY(-1px);
-}
-
-.profile-workspace__toolbar,
-.profile-workspace__actions,
-.environment-list__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.workspace-control-label {
-  color: var(--workspace-eyebrow-color);
-  font-size: 0.76rem;
-  padding: 0 0.16rem 0 0.24rem;
 }
 
 .workspace-panel-fallback {
@@ -977,84 +652,10 @@ body {
   font-size: 0.95rem;
 }
 
-.workspace-file-row__icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 0.34rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--workspace-stroke-soft);
-  background: var(--workspace-icon-surface);
-  color: var(--workspace-title-color);
-  font-size: 1rem;
-}
-
-.workspace-file-row__icon--large {
-  width: 72px;
-  height: 72px;
-  border-radius: 1rem;
-  font-size: 1.45rem;
-}
-
-.workspace-pill {
-  padding: 0.1rem 0.38rem;
-  border-radius: 999px;
-  border: 1px solid rgba(95, 128, 170, 0.28);
-  background: color-mix(in srgb, var(--workspace-surface-muted-soft, #1d2b3f) 72%, #6fa7e8 28%);
-  color: var(--workspace-title-color);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.workspace-pill--source {
-  border-color: rgba(117, 174, 247, 0.42);
-  background: color-mix(in srgb, var(--workspace-surface-muted-soft, #1d2b3f) 62%, #3f86d8 38%);
-  color: #d7eaff;
-}
-
-.workspace-pill--success {
-  border-color: rgba(74, 222, 128, 0.35);
-  background: color-mix(in srgb, var(--workspace-surface-muted-soft, #1d2b3f) 68%, #238a55 32%);
-  color: #7fe0a0;
-}
-
-.workspace-pill--warning {
-  border-color: rgba(255, 187, 84, 0.35);
-  background: color-mix(in srgb, var(--workspace-surface-muted-soft, #1d2b3f) 66%, #a86d22 34%);
-  color: #ffca76;
-}
-
-.workspace-pill--danger {
-  border-color: rgba(255, 107, 107, 0.35);
-  background: color-mix(in srgb, var(--workspace-surface-muted-soft, #1d2b3f) 66%, #96333d 34%);
-  color: #ff9f9f;
-}
-
-.workspace-pill--security {
-  gap: 0.35rem;
-  line-height: 1;
-}
-
-.settings-section h3,
-.help-section h3,
-.environment-header h3 {
+.settings-section h3 {
   letter-spacing: 0.015em;
 }
 
-.settings-section .form-group,
-.help-section p,
-.environment-details p {
-  margin-bottom: 0.65rem;
-}
-
-.settings-section .form-group:last-child,
-.help-section p:last-child,
-.environment-details p:last-child {
-  margin-bottom: 0;
-}
-
-.environment-card,
-.mod-card,
 .settings-section {
   background: var(--workspace-surface-card);
   border-color: var(--workspace-stroke);
@@ -1096,9 +697,7 @@ body {
 
 @media (max-width: 980px) {
 
-  .mod-card,
-  .settings-section,
-  .help-section {
+  .settings-section {
     padding: 0.85rem;
   }
 }
@@ -1212,8 +811,6 @@ body {
 /* The shell main owns the available workspace width.  Save Management needs
  * that parent as its query container: a container cannot query its own size. */
 
-.modal-actions,
-.form-actions,
 .environment-actions {
   gap: var(--simm-workspace-gap);
   padding: clamp(0.65rem, 1.4dvh, 1rem) clamp(0.75rem, 1.7dvw, 1.25rem);
