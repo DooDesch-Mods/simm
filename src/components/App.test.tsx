@@ -637,9 +637,10 @@ describe('App', () => {
     render(<App />);
 
     expect(await screen.findByRole('heading', { name: "What's new in SIMM" })).toBeTruthy();
-    expect(await screen.findAllByText('SIMM 0.8.4')).toHaveLength(2);
+    // The release and the changelog describe the same version: it is listed once.
+    expect(await screen.findAllByText('SIMM 0.8.4')).toHaveLength(1);
     expect(await screen.findByText('Refined the desktop workspace.')).toBeTruthy();
-    expect(screen.getByText('Refined Home and desktop UI polish.')).toBeTruthy();
+    expect(screen.getByText('Fixed update checks.')).toBeTruthy();
     expect(screen.queryByText('Recommended next step')).toBeNull();
     expect(screen.queryByText('App channel checked')).toBeNull();
   });

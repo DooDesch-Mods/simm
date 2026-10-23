@@ -45,12 +45,14 @@ export function summarizeEnvironmentStatus(
       break;
   }
 
+  const modLabel = modUpdateCount === 1 ? '1 mod update' : `${modUpdateCount} mod updates`;
+
   if (environment.updateAvailable) {
-    return { tone: 'warn', label: 'Game update' };
+    return { tone: 'warn', label: modUpdateCount > 0 ? `Game update · ${modLabel}` : 'Game update' };
   }
 
   if (modUpdateCount > 0) {
-    return { tone: 'warn', label: modUpdateCount === 1 ? '1 mod update' : `${modUpdateCount} mod updates` };
+    return { tone: 'warn', label: modLabel };
   }
 
   return { tone: 'ok', label: 'Ready' };

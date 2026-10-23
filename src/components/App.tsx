@@ -595,7 +595,14 @@ async function loadHomeFeed(signal?: AbortSignal): Promise<HomeFeedItem[]> {
     feed.push(...parseChangelogFeed(markdown));
   }
 
-  return feed.slice(0, 4);
+  const seen = new Set<string>();
+  return feed.filter((item) => {
+    const match = item.title.match(/(\d+\.\d+\.\d+)(?:\D*beta\D*(\d+))?/i);
+    const version = match ? `${match[1]}${match[2] ? `-beta.${match[2]}` : ''}` : item.title;
+    if (seen.has(version)) return false;
+    seen.add(version);
+    return true;
+  }).slice(0, 3);
 }
 
 function HomeEnvironmentRow({
@@ -619,7 +626,10 @@ function HomeEnvironmentRow({
   const playable = environment.status === 'completed';
   const gameVersion = environmentGameVersion(environment);
   const nextStep = !playable
-    ? { label: 'Open', onClick: () => onOpenEnvironment(environment.id) }
+    ? {
+        label: environment.status === 'not_downloaded' || environment.status === 'downloading' ? 'Set Up' : 'Review',
+        onClick: () => onOpenEnvironment(environment.id),
+      }
     : environment.updateAvailable
       ? { label: 'Update Game', onClick: () => onOpenEnvironment(environment.id) }
       : modUpdateCount > 0
@@ -813,7 +823,7 @@ function HomeDashboard({
         {feedStatus === 'empty' && <p className="ui-subtle">Release notes appear here when GitHub can be reached.</p>}
         {feedStatus === 'ready' && (
           <ul className="home__news-list">
-            {feedItems.slice(0, 3).map((item) => (
+            {feedItems.slice(0, 2).map((item) => (
               <li key={item.id} className="home__news-item">
                 <div className="home__news-heading">
                   {item.url ? (
@@ -2878,7 +2888,7 @@ function AppContent() {
           >
             <DialogHeader className="modal-header">
               <DialogTitle>Select Runtime</DialogTitle>
-              <SimmButton variant="ghost" size="icon-sm" className="modal-close" onClick={() => void handleCancelNexusRuntimeSelection()} aria-label="Close runtime selection dialog">×</SimmButton>
+              <SimmButton variant="ghost" size="icon-sm" className="modal-close" onClick={() => void handleCancelNexusRuntimeSelection()} aria-label="Close runtime selection dialog"><Icon name="times" /></SimmButton>
             </DialogHeader>
             <div className="app-dialog__body app-runtime-dialog__body">
               <div className="app-dialog__callout app-dialog__callout--info">
