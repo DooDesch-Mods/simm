@@ -12,10 +12,12 @@ Tauri 2 desktop app (Windows and Linux) rendering a React web UI. The design lan
 
 ## Users
 
-*(inferred)* Two audiences, equally weighted:
+Two audiences, and the product must work perfectly for both (confirmed by the maintainer):
 
-- **Players** of Schedule I who want to install, update, and remove mods without touching files. They run one environment, open SIMM before playing, and need the next safe action to be obvious.
-- **Mod developers and power users** who keep several environments (branches, IL2CPP vs. Mono runtimes), read logs, edit MelonLoader configs, sideload local dev mods, and switch between them many times per session.
+- **Mod developers** — the original audience. SIMM began as a tool to make mod development easier: several environments (branches, IL2CPP vs. Mono runtimes), logs, MelonLoader configs, local dev mods, switching many times per session.
+- **Players** — the audience SIMM grew into. Schedule I players who want to install, update, and remove mods without touching files. *(inferred)* They usually run one environment, open SIMM before playing, and need the next safe action to be obvious.
+
+Neither audience is served by a mode switch that hides the other's world; the developer depth has to integrate meaningfully with the player path.
 
 ## Product Purpose
 
@@ -46,7 +48,10 @@ The library-first model: mods live once in a shared library and are materialized
 ## Brand Commitments
 
 - Name: SIMM — Schedule I Mod Manager. App icon in `src-tauri/icons/`.
-- Binding direction from the maintainers' spec (`docs/simm-desktop-ui-redesign-spec.md`): an operational desktop utility, not a web dashboard. No landing-page heroes, bento grids, feature-card grids, glows, decorative gradients, or emoji in UI copy.
+- Recognition over reinvention (maintainer, 2026-10): stay as close to the current look as possible so existing users feel at home and no needless friction appears. Keep the dark navy/graphite "modern-blue" identity, the blue accent, the app icon, and the overall shell shape; fix what is broken rather than replacing the world.
+- What is broken (maintainer, 2026-10): the visuals are poorly executed, surfaces are overcrowded, and UI and UX are out of step.
+- Structure (maintainer, 2026-10): each environment is an object with its own tabs (Overview, Mods, Plugins, UserLibs, Config, Logs, Saves). Developer tools live inside the environment, one step deeper, instead of all on one surface. Home is "ready to play". The Mod Library stays global; downloads live in the status bar.
+- Still binding from the maintainers' spec (`docs/simm-desktop-ui-redesign-spec.md`): an operational desktop utility, not a web dashboard. No landing-page heroes, bento grids, feature-card grids, glows, decorative gradients, or emoji in UI copy.
 
 ## Evidence on Hand
 
@@ -56,11 +61,12 @@ The library-first model: mods live once in a shared library and are materialized
 
 ## Product Principles
 
-1. The selected environment is always clear; every action says which environment it touches.
-2. Background work is visible but never blocks the user.
-3. Risky actions (delete, overwrite, runtime mismatch, failed scans) are named explicitly with the affected object and a way back.
-4. Data carries the UI: lists, tables, and inspectors before cards.
-5. One vocabulary across screens: the same control looks and behaves the same everywhere.
+1. Calm by default, deep on demand: a player sees the next safe action first; developer depth (logs, configs, runtimes, raw files) sits one deliberate step away, never piled onto the same surface. The current UI fails this — surfaces are overcrowded and UI and UX do not agree (maintainer, 2026-10).
+2. The selected environment is always clear; every action says which environment it touches.
+3. Background work is visible but never blocks the user.
+4. Risky actions (delete, overwrite, runtime mismatch, failed scans) are named explicitly with the affected object and a way back.
+5. Data carries the UI: lists, tables, and inspectors before cards.
+6. One vocabulary across screens: the same control looks and behaves the same everywhere.
 
 ## Accessibility & Inclusion
 
