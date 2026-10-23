@@ -26,7 +26,8 @@
 }
 
 .env-overview--page {
-  max-width: 52rem;
+  /* Full workspace width so the body lines up with the header and its Play
+     button; long prose is capped separately below. */
   padding: var(--simm-space-5);
 }
 
@@ -76,6 +77,7 @@
 }
 
 .env-overview__description p {
+  max-width: 75ch;
   margin: 0;
   padding-top: 3px;
   color: var(--simm-text-2);
@@ -128,7 +130,7 @@
 
 /* Facts. */
 .env-overview__facts {
-  grid-template-columns: 9rem minmax(0, 1fr);
+  grid-template-columns: 11rem minmax(0, 1fr);
   gap: 0;
   font-size: var(--simm-text-base);
 }
@@ -176,11 +178,8 @@
   cursor: pointer;
 }
 
-/* Installed content summary line. */
-.env-overview__summary {
-  gap: var(--simm-space-1) var(--simm-space-2);
-}
-
+/* Installed content summary line: keeps the .ui-meta gap so its separators
+   sit centred between items. */
 .env-overview__summary [data-slot='button'][data-variant='link'] {
   font-size: var(--simm-text-base);
   color: var(--simm-text);

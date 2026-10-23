@@ -9128,7 +9128,7 @@ export function ModLibraryOverlay({
                 onClick={() => handleCollectionConflictChoice("cancel")}
                 aria-label="Review this conflict later"
               >
-                ×
+                <Icon name="times" />
               </SimmButton>
             </div>
             <div className="app-dialog__body collection-conflict-dialog__body">
@@ -9232,7 +9232,7 @@ export function ModLibraryOverlay({
                   setRuntimePrompt(null);
                 }}
               >
-                ×
+                <Icon name="times" />
               </SimmButton>
             </DialogHeader>
             <div className="app-dialog__body app-runtime-dialog__body app-collection-runtime-dialog__body">
