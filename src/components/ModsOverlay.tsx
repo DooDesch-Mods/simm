@@ -3547,7 +3547,7 @@ export function ModsOverlay({
       <table className="ui-table env-assets-table">
         <colgroup>
           <col />
-          <col className="env-assets-table__col-source" />
+          <col className="env-assets-table__col-source env-assets-table__source" />
           <col className="env-assets-table__col-version" />
           <col className="env-assets-table__col-status" />
           <col className="env-assets-table__col-toggle" />
@@ -3555,7 +3555,7 @@ export function ModsOverlay({
         <thead>
           <tr>
             <th scope="col">Name</th>
-            <th scope="col">Source</th>
+            <th scope="col" className="env-assets-table__source">Source</th>
             <th scope="col">Version</th>
             <th scope="col">Status</th>
             <th scope="col" className="env-assets-table__toggle">Enabled</th>
@@ -3594,11 +3594,14 @@ export function ModsOverlay({
                     <ModIcon iconCachePath={mod.iconCachePath} iconUrl={mod.iconUrl} />
                     <span className="env-assets-row__text">
                       <span className="env-assets-row__name">{mod.name}</span>
-                      <span className="env-assets-row__desc">{mod.summary || mod.fileName}</span>
+                      <span className="env-assets-row__desc">
+                        <span className="env-assets-row__desc-source">{getSourceLabel(mod.source)} · </span>
+                        {mod.summary || mod.fileName}
+                      </span>
                     </span>
                   </button>
                 </td>
-                <td className="env-assets-row__muted">{getSourceLabel(mod.source)}</td>
+                <td className="env-assets-row__muted env-assets-table__source">{getSourceLabel(mod.source)}</td>
                 <td className="env-assets-row__version ui-mono">
                   {mod.version || '—'}
                   {latestVersion && latestVersion !== mod.version && (

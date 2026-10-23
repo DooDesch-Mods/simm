@@ -2496,7 +2496,7 @@ describe("ModLibraryOverlay", () => {
     });
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Download selected file" }),
+      await screen.findByRole("button", { name: "Download" }),
     );
 
     expect(screen.getByText("Updated Jan 2, 2025")).toBeTruthy();
@@ -2604,7 +2604,7 @@ describe("ModLibraryOverlay", () => {
 
     fireEvent.click(await screen.findByRole("option", { name: /v1\.1\.0/i }));
     fireEvent.click(
-      screen.getByRole("button", { name: "Download selected version" }),
+      screen.getByRole("button", { name: "Download" }),
     );
 
     await waitFor(() => {
@@ -2704,17 +2704,17 @@ describe("ModLibraryOverlay", () => {
     });
 
     expect(
-      await screen.findByRole("button", { name: "Install library version" }),
+      await screen.findByRole("button", { name: "Install to…" }),
     ).toBeTruthy();
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: "Download selected file" }),
+        screen.getByRole("button", { name: "Download" }),
       ).not.toBeDisabled();
     });
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Download selected file" }),
+      screen.getByRole("button", { name: "Download" }),
     );
 
     expect(
@@ -2830,7 +2830,7 @@ describe("ModLibraryOverlay", () => {
 
     fireEvent.click(await screen.findByRole("option", { name: /v1\.0\.0/i }));
     fireEvent.click(
-      screen.getByRole("button", { name: "Download selected file" }),
+      screen.getByRole("button", { name: "Download" }),
     );
 
     await waitFor(() => {
@@ -2929,7 +2929,7 @@ describe("ModLibraryOverlay", () => {
     });
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Download selected version" }),
+      await screen.findByRole("button", { name: "Download" }),
     );
 
     await waitFor(() => {
@@ -3019,7 +3019,7 @@ describe("ModLibraryOverlay", () => {
     });
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Download selected version" }),
+      await screen.findByRole("button", { name: "Download" }),
     );
 
     await waitFor(() => {
@@ -3107,7 +3107,7 @@ describe("ModLibraryOverlay", () => {
 
     fireEvent.click(await screen.findByRole("option", { name: /v1\.0\.0/i }));
     fireEvent.click(
-      screen.getByRole("button", { name: "Download selected file" }),
+      screen.getByRole("button", { name: "Download" }),
     );
 
     await screen.findByText("Nexus Download Failed");
@@ -3245,7 +3245,7 @@ describe("ModLibraryOverlay", () => {
 
     expect(await screen.findByText("All-in-One")).toBeTruthy();
     fireEvent.click(
-      screen.getByRole("button", { name: "Download selected file" }),
+      screen.getByRole("button", { name: "Download" }),
     );
 
     await waitFor(() => {
@@ -3313,7 +3313,7 @@ describe("ModLibraryOverlay", () => {
 
     fireEvent.click(await screen.findByRole("option", { name: /v1\.0\.7r2/i }));
     fireEvent.click(
-      screen.getByRole("button", { name: "Download selected file" }),
+      screen.getByRole("button", { name: "Download" }),
     );
 
     await waitFor(() => {
@@ -3701,10 +3701,10 @@ describe("ModLibraryOverlay", () => {
     renderLibraryOverlay({ libraryTab: "library" });
 
     expect(await screen.findByRole("button", { name: /Keyboard Mod/i })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Install…" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Install to…" })).toBeNull();
     await openFirstDownloadedModDetails();
     expect(
-      await screen.findByRole("button", { name: "Install…" }),
+      await screen.findByRole("button", { name: "Install to…" }),
     ).toBeTruthy();
     expect(
       screen.getByRole("heading", { name: "Keyboard Mod", level: 2 }),
@@ -3817,7 +3817,7 @@ describe("ModLibraryOverlay", () => {
 
     await openFirstDownloadedModDetails();
     expect(
-      await screen.findByRole("button", { name: "Install…" }),
+      await screen.findByRole("button", { name: "Install to…" }),
     ).toBeTruthy();
     expect(
       screen.queryByText("Select a mod to review details and actions."),
@@ -3856,7 +3856,7 @@ describe("ModLibraryOverlay", () => {
 
     await openFirstDownloadedModDetails();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Update and activate" }),
+      await screen.findByRole("button", { name: "Update and Activate" }),
     );
 
     expect(await screen.findByText("Mod Update Failed")).toBeTruthy();
@@ -3966,7 +3966,7 @@ describe("ModLibraryOverlay", () => {
 
     await openFirstDownloadedModDetails();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Update and activate" }),
+      await screen.findByRole("button", { name: "Update and Activate" }),
     );
 
     await waitFor(() => {
@@ -4090,6 +4090,106 @@ describe("ModLibraryOverlay", () => {
     });
   });
 
+  it("leaves mods with a security exception out of Update All on the Updates tab", async () => {
+    const updatableEntry = (name: string, storageId: string, extra: Partial<ModLibraryEntry> = {}) =>
+      makeEntry({
+        storageId,
+        displayName: name,
+        source: "thunderstore",
+        sourceId: `ifBars/${name}`,
+        sourceVersion: "1.1.0",
+        installedVersion: "1.1.0",
+        remoteVersion: "1.2.0",
+        updateAvailable: true,
+        availableRuntimes: ["Mono"],
+        installedIn: ["env-alt"],
+        installedInByRuntime: { Mono: ["env-alt"] },
+        storageIdsByRuntime: { Mono: storageId },
+        filesByRuntime: { Mono: [`${name}.dll`] },
+        ...extra,
+      });
+    apiMocks.getModLibrary.mockResolvedValue({
+      downloaded: [
+        updatableEntry("RiskyTool", "risky-old", {
+          securityScan: {
+            state: "review",
+            verified: false,
+            disposition: {
+              classification: "Suspicious",
+              headline: "Potentially malicious",
+              summary: "Suspicious behaviour was found.",
+              blockingRecommended: false,
+              relatedFindingIds: [],
+            },
+            totalFindings: 1,
+            threatFamilyCount: 0,
+          },
+        }),
+        updatableEntry("ScheduleToolbox", "toolbox-old"),
+      ],
+    });
+    apiMocks.searchThunderstore.mockImplementation(async (_gameId, query, runtime) => ({
+      packages: [makeThunderstorePackage(String(query), "1.2.0", runtime === "IL2CPP" ? "IL2CPP" : "Mono")],
+    }));
+    apiMocks.downloadThunderstoreToLibrary.mockResolvedValue({
+      success: true,
+      storageId: "new-storage",
+    });
+
+    renderLibraryOverlay({ libraryTab: "updates" });
+
+    const updateAll = await screen.findByRole("button", { name: "Update All (1)" });
+    expect(screen.getByText("1 needs review")).toBeTruthy();
+    expect(updateAll.getAttribute("title")).toMatch(/1 update needs a security review/);
+
+    fireEvent.click(updateAll);
+
+    await waitFor(() => {
+      expect(apiMocks.downloadThunderstoreToLibrary).toHaveBeenCalledWith(
+        "ScheduleToolbox-Mono-pkg",
+        "Mono",
+        undefined,
+        "ScheduleToolbox-Mono-ver",
+      );
+    });
+    // RiskyTool is listed first, so a bulk run that included it would already have downloaded it.
+    expect(
+      apiMocks.downloadThunderstoreToLibrary.mock.calls.some(
+        ([packageId]) => String(packageId).startsWith("RiskyTool"),
+      ),
+    ).toBe(false);
+  });
+
+  it("disables Update All when every update needs a security review", async () => {
+    apiMocks.getModLibrary.mockResolvedValue({
+      downloaded: [
+        makeEntry({
+          storageId: "risky-old",
+          displayName: "RiskyTool",
+          source: "thunderstore",
+          sourceId: "ifBars/RiskyTool",
+          sourceVersion: "1.1.0",
+          installedVersion: "1.1.0",
+          remoteVersion: "1.2.0",
+          updateAvailable: true,
+          securityScan: {
+            state: "unavailable",
+            verified: false,
+            totalFindings: 0,
+            threatFamilyCount: 0,
+          },
+        }),
+      ],
+    });
+
+    renderLibraryOverlay({ libraryTab: "updates" });
+
+    const updateAll = await screen.findByRole("button", { name: "Update All (0)" });
+    expect(updateAll).toBeDisabled();
+    expect(updateAll.getAttribute("title")).toMatch(/Every available update needs a security review/);
+    expect(screen.getByText("1 needs review")).toBeTruthy();
+  });
+
   it("normalizes runtime-suffixed Thunderstore source ids before resolving update downloads", async () => {
     apiMocks.getModLibrary
       .mockResolvedValueOnce({
@@ -4190,7 +4290,7 @@ describe("ModLibraryOverlay", () => {
 
     await openFirstDownloadedModDetails();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Update and activate" }),
+      await screen.findByRole("button", { name: "Update and Activate" }),
     );
 
     await waitFor(() => {
@@ -4238,10 +4338,10 @@ describe("ModLibraryOverlay", () => {
     await openFirstDownloadedModDetails();
     // Without a newer remote version there is no update action to offer.
     expect(
-      await screen.findByRole("button", { name: "Install to more…" }),
+      await screen.findByRole("button", { name: "Install to…" }),
     ).toBeTruthy();
     expect(
-      screen.queryByRole("button", { name: "Update and activate" }),
+      screen.queryByRole("button", { name: "Update and Activate" }),
     ).toBeNull();
     expect(
       document.querySelector(".lib-detail__header .ui-tag--warn"),
@@ -4319,7 +4419,7 @@ describe("ModLibraryOverlay", () => {
 
     await openFirstDownloadedModDetails();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Update and activate" }),
+      await screen.findByRole("button", { name: "Update and Activate" }),
     );
 
     await waitFor(() => {
@@ -4392,7 +4492,7 @@ describe("ModLibraryOverlay", () => {
     renderLibraryOverlay({ libraryTab: "library" });
 
     await openFirstDownloadedModDetails();
-    fireEvent.click(await screen.findByRole("button", { name: "Install…" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Install to…" }));
 
     expect(await screen.findByText("2 compatible environments")).toBeTruthy();
     expect(screen.getByText("Main")).toBeTruthy();
@@ -4459,7 +4559,7 @@ describe("ModLibraryOverlay", () => {
     renderLibraryOverlay({ libraryTab: "library" });
 
     await openFirstDownloadedModDetails();
-    fireEvent.click(await screen.findByRole("button", { name: "Install…" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Install to…" }));
 
     await waitFor(() => {
       expect(apiMocks.installDownloadedMod).toHaveBeenCalledWith(
@@ -4535,7 +4635,7 @@ describe("ModLibraryOverlay", () => {
 
     await openFirstDownloadedModDetails();
     const button = await screen.findByRole("button", {
-      name: "Install to more…",
+      name: "Install to…",
     });
     expect(button).toBeDisabled();
     expect(button.getAttribute("title")).toBe(
@@ -4574,7 +4674,7 @@ describe("ModLibraryOverlay", () => {
     renderLibraryOverlay({ libraryTab: "library" });
 
     await openFirstDownloadedModDetails();
-    const button = await screen.findByRole("button", { name: "Install…" });
+    const button = await screen.findByRole("button", { name: "Install to…" });
     expect(button).toBeDisabled();
     expect(button.getAttribute("title")).toContain(
       "does not support the selected runtime",
@@ -4628,7 +4728,7 @@ describe("ModLibraryOverlay", () => {
     await chooseAvailableLibraryVersion(/v1\.1\.0 - Mono/);
 
     const button = await screen.findByRole("button", {
-      name: "Install to more…",
+      name: "Install to…",
     });
     expect(button).toBeDisabled();
     await waitFor(() => {

@@ -37,6 +37,12 @@
   flex: none;
 }
 
+.env-assets__note {
+  color: var(--simm-text-3);
+  font-size: var(--simm-text-xs);
+  white-space: nowrap;
+}
+
 .env-assets__summary {
   min-width: 0;
   margin: 0;
@@ -254,6 +260,11 @@
   font-size: var(--simm-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Shown in the sub-line only when the Source column is folded away (narrow list). */
+.env-assets-row__desc-source {
+  display: none;
 }
 
 .env-assets-row--disabled .env-assets-row__name {
@@ -693,4 +704,8 @@
   .env-assets-table__col-size { width: 5.5rem; }
   .env-assets-table__col-status { width: 10.5rem; }
   .env-assets-table__col-toggle { width: 4.5rem; }
+
+  /* Fold Source into the name sub-line so the description keeps ~40+ characters. */
+  .env-assets-table .env-assets-table__source { display: none; }
+  .env-assets-row__desc-source { display: inline; }
 }

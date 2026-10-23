@@ -423,9 +423,10 @@ function getExceptionTag(
   summary: SecurityScanSummary | undefined,
   showSecurity: boolean,
   updateAvailable: boolean,
+  includeMuted = false,
 ): { label: string; tone: LibraryTagTone } | null {
   const security = showSecurity ? getSecurityBadgeConfig(summary) : null;
-  if (security?.exception && security.tone !== "muted") {
+  if (security?.exception && (includeMuted || security.tone !== "muted")) {
     return { label: security.label, tone: security.tone };
   }
   if (updateAvailable) {
@@ -8887,9 +8888,35 @@ export function ModLibraryOverlay({
     loadingLibrary,
   ]);
 
+  // Updates whose current scan result is an exception (potentially malicious, known threat,
+  // needs review, not scannable) stay out of "Update All"; their own Update action keeps the gate.
+  const isGroupSecurityFlagged = useCallback(
+    (group: DownloadedModGroup): boolean => {
+      const entry = getActiveEntryForGroup(group) || group.entries[0];
+      return Boolean(getSecurityBadgeConfig(entry?.securityScan)?.exception);
+    },
+    [getActiveEntryForGroup],
+  );
+
+  const updatableDownloadedGroups = useMemo(
+    () =>
+      libraryTab === "updates"
+        ? displayedDownloadedGroups.filter((group) => isGroupUpdateAvailable(group))
+        : [],
+    [displayedDownloadedGroups, isGroupUpdateAvailable, libraryTab],
+  );
+  const flaggedUpdateGroupCount = updatableDownloadedGroups.filter(isGroupSecurityFlagged).length;
+  const bulkUpdateGroupCount = updatableDownloadedGroups.length - flaggedUpdateGroupCount;
+  const updateAllGroupsTitle =
+    flaggedUpdateGroupCount === 0
+      ? undefined
+      : bulkUpdateGroupCount === 0
+        ? `Every available update needs a security review. Open ${flaggedUpdateGroupCount === 1 ? "the mod" : "each mod"} and update it from its own page.`
+        : `${flaggedUpdateGroupCount} ${flaggedUpdateGroupCount === 1 ? "update needs" : "updates need"} a security review and ${flaggedUpdateGroupCount === 1 ? "is" : "are"} not included. Open ${flaggedUpdateGroupCount === 1 ? "the mod" : "each mod"} to update it on its own.`;
+
   const handleUpdateAllGroups = useCallback(async () => {
-    const groups = displayedDownloadedGroups.filter((group) =>
-      isGroupUpdateAvailable(group),
+    const groups = displayedDownloadedGroups.filter(
+      (group) => isGroupUpdateAvailable(group) && !isGroupSecurityFlagged(group),
     );
     if (groups.length === 0) {
       return;
@@ -8909,7 +8936,7 @@ export function ModLibraryOverlay({
     } finally {
       setUpdatingAllGroups(false);
     }
-  }, [displayedDownloadedGroups, handleUpdateAndActivateGroup, isGroupUpdateAvailable]);
+  }, [displayedDownloadedGroups, handleUpdateAndActivateGroup, isGroupSecurityFlagged, isGroupUpdateAvailable]);
 
   const openContextMenu = useCallback(
     (event: ReactMouseEvent, items: AnchoredContextMenuItem[]) => {
@@ -8925,7 +8952,7 @@ export function ModLibraryOverlay({
       return [
         {
           key: "install",
-          label: group.installedIn.length > 0 ? "Install to more…" : "Install…",
+          label: "Install to…",
           icon: "fas fa-download",
           disabled: !entry,
           onSelect: () => {
@@ -9530,18 +9557,26 @@ export function ModLibraryOverlay({
                       <Icon name="ellipsisH" />
                     </SimmButton>
                   ) : (
-                    <SimmButton
-                      type="button"
-                      onClick={() => void handleUpdateAllGroups()}
-                      disabled={updatingAllGroups || displayedDownloadedGroups.length === 0}
-                    >
-                      <Icon name={updatingAllGroups ? "spinner" : "arrowUp"} spin={updatingAllGroups} />
-                      <span>
-                        {updatingAllGroups
-                          ? "Updating…"
-                          : `Update All (${displayedDownloadedGroups.length})`}
-                      </span>
-                    </SimmButton>
+                    <>
+                      {flaggedUpdateGroupCount > 0 && (
+                        <span className="lib-toolbar__note" title={updateAllGroupsTitle}>
+                          {flaggedUpdateGroupCount} {flaggedUpdateGroupCount === 1 ? "needs" : "need"} review
+                        </span>
+                      )}
+                      <SimmButton
+                        type="button"
+                        onClick={() => void handleUpdateAllGroups()}
+                        disabled={updatingAllGroups || bulkUpdateGroupCount === 0}
+                        title={updateAllGroupsTitle}
+                      >
+                        <Icon name={updatingAllGroups ? "spinner" : "arrowUp"} spin={updatingAllGroups} />
+                        <span>
+                          {updatingAllGroups
+                            ? "Updating…"
+                            : `Update All (${bulkUpdateGroupCount})`}
+                        </span>
+                      </SimmButton>
+                    </>
                   )}
                 </>
               )}
@@ -10025,7 +10060,12 @@ export function ModLibraryOverlay({
                       </LibraryEmpty>
                     ))}
                   {!loadingLibrary && displayedDownloadedGroups.length > 0 && (
-                    <div className="lib-table">
+                    <div
+                      className={cn(
+                        "lib-table lib-table--sized",
+                        libraryTab === "updates" ? "lib-table--updates" : "lib-table--library",
+                      )}
+                    >
                       {libraryTab === "updates" ? (
                         <div
                           className="lib-table__head lib-grid lib-grid--updates"
@@ -10060,6 +10100,8 @@ export function ModLibraryOverlay({
                           activeEntry?.securityScan,
                           settings?.showSecurityScanBadges !== false,
                           libraryTab === "library" && updateAvailable,
+                          // In Updates, an unscannable mod is held out of Update All: say why.
+                          libraryTab === "updates",
                         );
                         const isSelected =
                           activeModView?.kind === "downloaded" &&
@@ -10305,7 +10347,6 @@ export function ModLibraryOverlay({
                     installMoreOnly,
                   ).message
                 : undefined;
-              const installIsPrimary = !updateAvailable && !installMoreOnly;
               const exception = getExceptionTag(
                 selectedDownloadedEntry.securityScan,
                 settings?.showSecurityScanBadges !== false,
@@ -10359,20 +10400,9 @@ export function ModLibraryOverlay({
                   }
                   actions={
                     <>
-                      {updateAvailable && (
-                        <SimmButton
-                          type="button"
-                          onClick={() =>
-                            void handleUpdateAndActivateGroup(selectedDownloadedGroup)
-                          }
-                        >
-                          <Icon name="arrowUp" />
-                          <span>Update and activate</span>
-                        </SimmButton>
-                      )}
+                      {/* Same rule on every detail page: downloaded → Install to… is primary. */}
                       <SimmButton
                         type="button"
-                        variant={installIsPrimary ? "default" : "outline"}
                         onClick={() =>
                           void promptInstallTargets(
                             selectedDownloadedEntry,
@@ -10381,11 +10411,22 @@ export function ModLibraryOverlay({
                           )
                         }
                         disabled={installDisabled}
-                        title={installTitle}
+                        title={installTitle ?? `Install ${selectedVersionLabel} to environments`}
                       >
-                        {installIsPrimary && <Icon name="download" />}
-                        <span>{installMoreOnly ? "Install to more…" : "Install…"}</span>
+                        <span>Install to…</span>
                       </SimmButton>
+                      {updateAvailable && (
+                        <SimmButton
+                          type="button"
+                          variant="outline"
+                          onClick={() =>
+                            void handleUpdateAndActivateGroup(selectedDownloadedGroup)
+                          }
+                        >
+                          <Icon name="arrowUp" />
+                          <span>Update and Activate</span>
+                        </SimmButton>
+                      )}
                       {sourceUrl && (
                         <ExternalIconLink
                           label="Open Source Page"
@@ -10406,7 +10447,10 @@ export function ModLibraryOverlay({
               const hasLibraryVersion = Boolean(
                 downloadedGroup && selectedThunderstoreDownloadedEntry,
               );
-              const downloadIsPrimary = !hasLibraryVersion || updateAvailable;
+              const selectedThunderstoreVersionLabel = formatVersionTag(
+                selectedThunderstoreVersion?.versionNumber ??
+                  selectedThunderstoreLatestVersion?.version_number,
+              );
               const runtimeNames = new Set(
                 selectedThunderstoreRuntimeLabels.map((runtime) => runtime.toLowerCase()),
               );
@@ -10467,23 +10511,11 @@ export function ModLibraryOverlay({
                   }
                   actions={
                     <>
-                      <SimmButton
-                        type="button"
-                        variant={downloadIsPrimary ? "default" : "outline"}
-                        onClick={() =>
-                          void handleDownloadThunderstore(
-                            selectedThunderstorePackage,
-                            selectedThunderstoreVersion,
-                          )
-                        }
-                      >
-                        {downloadIsPrimary && <Icon name="download" />}
-                        <span>Download selected version</span>
-                      </SimmButton>
+                      {/* Same rule on every detail page: not downloaded → Download is primary,
+                          downloaded → Install to… is primary and Download secondary. */}
                       {downloadedGroup && selectedThunderstoreDownloadedEntry && (
                         <SimmButton
                           type="button"
-                          variant={downloadIsPrimary ? "outline" : "default"}
                           onClick={() =>
                             void promptInstallTargets(
                               selectedThunderstoreDownloadedEntry,
@@ -10491,14 +10523,25 @@ export function ModLibraryOverlay({
                               downloadedGroup.installedIn.length > 0,
                             )
                           }
+                          title={`Install ${formatVersionTag(getEntryVersionLabel(selectedThunderstoreDownloadedEntry))} from your library to environments`}
                         >
-                          <span>
-                            {downloadedGroup.installedIn.length > 0
-                              ? "Install library version…"
-                              : "Install library version"}
-                          </span>
+                          <span>Install to…</span>
                         </SimmButton>
                       )}
+                      <SimmButton
+                        type="button"
+                        variant={hasLibraryVersion ? "outline" : "default"}
+                        onClick={() =>
+                          void handleDownloadThunderstore(
+                            selectedThunderstorePackage,
+                            selectedThunderstoreVersion,
+                          )
+                        }
+                        title={`Download ${selectedThunderstoreVersionLabel} to your library`}
+                      >
+                        {!hasLibraryVersion && <Icon name="download" />}
+                        <span>Download</span>
+                      </SimmButton>
                       {packageUrl && (
                         <ExternalIconLink
                           label="Open Source Page"
@@ -10519,7 +10562,6 @@ export function ModLibraryOverlay({
               const hasLibraryVersion = Boolean(
                 downloadedGroup && selectedNexusDownloadedEntry,
               );
-              const downloadIsPrimary = !hasLibraryVersion || updateAvailable;
               return (
                 <ModLibraryDetailHeader
                   backLabel={detailPageBackLabel}
@@ -10573,20 +10615,8 @@ export function ModLibraryOverlay({
                   }
                   actions={
                     <>
-                      <SimmButton
-                        type="button"
-                        variant={downloadIsPrimary ? "default" : "outline"}
-                        onClick={() =>
-                          void handleDownloadNexusMod(
-                            selectedNexusResult.mod_id,
-                            selectedNexusFile,
-                          )
-                        }
-                        disabled={selectedNexusFiles.length === 0}
-                      >
-                        {downloadIsPrimary && <Icon name="download" />}
-                        <span>Download selected file</span>
-                      </SimmButton>
+                      {/* Same rule on every detail page: not downloaded → Download is primary,
+                          downloaded → Install to… is primary and Download secondary. */}
                       {downloadedGroup &&
                         selectedNexusDownloadedEntry &&
                         (() => {
@@ -10619,7 +10649,6 @@ export function ModLibraryOverlay({
                           return (
                             <SimmButton
                               type="button"
-                              variant={downloadIsPrimary ? "outline" : "default"}
                               onClick={() =>
                                 void promptInstallTargets(
                                   selectedNexusDownloadedEntry,
@@ -10628,16 +10657,34 @@ export function ModLibraryOverlay({
                                 )
                               }
                               disabled={installDisabled}
-                              title={installTitle}
+                              title={
+                                installTitle ??
+                                `Install ${formatVersionTag(getEntryVersionLabel(selectedNexusDownloadedEntry))} from your library to environments`
+                              }
                             >
-                              <span>
-                                {installMoreOnly
-                                  ? "Install library version…"
-                                  : "Install library version"}
-                              </span>
+                              <span>Install to…</span>
                             </SimmButton>
                           );
                         })()}
+                      <SimmButton
+                        type="button"
+                        variant={hasLibraryVersion ? "outline" : "default"}
+                        onClick={() =>
+                          void handleDownloadNexusMod(
+                            selectedNexusResult.mod_id,
+                            selectedNexusFile,
+                          )
+                        }
+                        disabled={selectedNexusFiles.length === 0}
+                        title={
+                          selectedNexusFile
+                            ? `Download ${selectedNexusFile.name || selectedNexusFile.file_name || "the selected file"} to your library`
+                            : undefined
+                        }
+                      >
+                        {!hasLibraryVersion && <Icon name="download" />}
+                        <span>Download</span>
+                      </SimmButton>
                       <ExternalIconLink
                         label="Open Source Page"
                         title="Open on Nexus Mods"

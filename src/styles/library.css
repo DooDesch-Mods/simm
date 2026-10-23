@@ -36,6 +36,12 @@
   border-bottom: 1px solid var(--simm-line);
 }
 
+.lib-toolbar__note {
+  color: var(--simm-text-3);
+  font-size: var(--simm-text-xs);
+  white-space: nowrap;
+}
+
 .lib-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -205,12 +211,28 @@
   grid-template-columns: 2rem minmax(0, 3fr) minmax(0, 1.2fr) 4rem 6rem 6.5rem;
 }
 
-.lib-grid--library {
-  grid-template-columns: 2rem minmax(0, 3fr) minmax(0, 1.1fr) 6.5rem 6.5rem minmax(0, 0.8fr) minmax(0, 1.2fr);
+/*
+ * Downloaded lists size their columns across every row (subgrid), so "Installed in" and the
+ * version columns fit their content instead of truncating environment names.
+ */
+.lib-table--sized {
+  /* Rows keep their side padding; with subgrid it lands in the edge tracks. */
+  --lib-icon-track: calc(2rem + var(--simm-space-5));
+  display: grid;
+  column-gap: var(--simm-space-4);
 }
 
-.lib-grid--updates {
-  grid-template-columns: 2rem minmax(0, 3fr) 6.5rem minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.3fr);
+.lib-table--library {
+  grid-template-columns: var(--lib-icon-track) minmax(12rem, 1fr) minmax(0, max-content) max-content max-content max-content fit-content(20rem);
+}
+
+.lib-table--updates {
+  grid-template-columns: var(--lib-icon-track) minmax(12rem, 1fr) max-content max-content max-content fit-content(20rem);
+}
+
+.lib-table--sized > .lib-grid {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
 }
 
 .lib-table__head {
@@ -809,14 +831,14 @@
     display: none;
   }
 
-  .lib-grid--library {
-    grid-template-columns: 2rem minmax(0, 1fr) 5.5rem minmax(0, 0.6fr);
-  }
-
   .lib-grid--library > :nth-child(3),
   .lib-grid--library > :nth-child(4),
   .lib-grid--library > :nth-child(5) {
     display: none;
+  }
+
+  .lib-table--library {
+    grid-template-columns: var(--lib-icon-track) minmax(0, 1fr) max-content fit-content(14rem);
   }
 }
 
