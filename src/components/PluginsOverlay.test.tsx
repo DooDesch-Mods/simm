@@ -5,6 +5,9 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { PluginsOverlay } from './PluginsOverlay';
 import type { Environment } from '../types';
 
+// Library artwork comes from the app-wide Mod Library store; these surfaces render without it here.
+vi.mock('./media/useModArtwork', () => ({ useModArtwork: () => () => null }));
+
 const apiMocks = vi.hoisted(() => ({
   getEnvironment: vi.fn(),
   getPlugins: vi.fn(),

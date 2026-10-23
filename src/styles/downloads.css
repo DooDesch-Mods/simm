@@ -99,7 +99,7 @@
 
 .downloads-panel__row {
   display: grid;
-  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
   align-items: start;
   gap: var(--simm-space-3);
   padding: var(--simm-space-2) var(--simm-space-4);
@@ -109,30 +109,44 @@
   border-top: 1px solid color-mix(in srgb, var(--simm-line) 70%, transparent);
 }
 
-.downloads-panel__icon,
-.downloads-panel__icon-image {
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-top: 1px;
+/* Media column: 32px mod art, 56px-wide collection banners and game art, or a kind icon. */
+.downloads-panel__thumb,
+.downloads-panel__media {
+  justify-self: center;
 }
 
-.downloads-panel__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.downloads-panel__thumb--banner {
+  width: 56px;
+  border-radius: var(--simm-radius-sm);
+}
+
+.downloads-panel__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: var(--simm-radius);
+  background: var(--simm-raised-hover);
   color: var(--simm-text-3);
 }
 
-.downloads-panel__icon svg {
+.downloads-panel__media svg {
   width: 0.875rem;
   height: 0.875rem;
 }
 
-.downloads-panel__icon-image {
-  display: block;
+.downloads-panel__media--wide {
+  width: 56px;
+  height: 26px;
+  margin-top: 3px;
   border-radius: var(--simm-radius-sm);
-  object-fit: cover;
-  background: var(--simm-hover);
+}
+
+.downloads-panel__game-art {
+  position: absolute;
+  inset: 0;
 }
 
 .downloads-panel__body {
@@ -248,19 +262,8 @@
 
 .downloads-panel__empty {
   padding: var(--simm-space-6) var(--simm-space-4);
-  text-align: center;
 }
 
-.downloads-panel__empty p {
-  margin: 0 auto;
+.downloads-panel__empty .ui-empty__copy {
   max-width: 34ch;
-  font-size: var(--simm-text-sm);
-  color: var(--simm-text-2);
-}
-
-.downloads-panel__empty p:first-child {
-  margin-bottom: var(--simm-space-1);
-  font-size: var(--simm-text-base);
-  font-weight: 600;
-  color: var(--simm-text);
 }

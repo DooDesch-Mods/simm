@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import type { ModProfileItem, ModProfileManifest } from '../types';
 import { Icon } from './Icon';
 import { SimmButton, SimmDialogContent } from './primitives';
+import { ModThumbnail } from './media/ModThumbnail';
+import { useModArtwork } from './media/useModArtwork';
 
 interface ProfileExportDialogProps {
   open: boolean;
@@ -72,6 +74,7 @@ export function ProfileExportDialog({
   onSave,
 }: ProfileExportDialogProps) {
   const counts = countSelectedItems(manifest, selectedItemKeys);
+  const getModArtwork = useModArtwork();
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => {
@@ -124,6 +127,11 @@ export function ProfileExportDialog({
                       <Checkbox
                         checked={selectedItemKeys.has(key)}
                         onCheckedChange={(value) => onToggleItem(item, index, Boolean(value))}
+                      />
+                      <ModThumbnail
+                        {...(getModArtwork(item.name) ?? getModArtwork(item.fileName) ?? getModArtwork(item.sourceId?.split('/').pop()))}
+                        name={item.name}
+                        size={24}
                       />
                       <span className="profile-export-dialog__item-main">
                         <strong>{item.name}</strong>

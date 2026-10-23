@@ -150,6 +150,10 @@
 }
 
 .telemetry-event__source {
+  display: flex;
+  align-items: center;
+  gap: var(--simm-space-2);
+  min-width: 0;
   color: var(--simm-text);
   font-size: var(--simm-text-base);
   font-weight: 500;
@@ -302,6 +306,17 @@
 .telemetry-mod-policy__select[data-slot='select-trigger'] {
   width: 10.5rem;
   min-height: var(--simm-control-h-sm);
+}
+
+.telemetry-mod-policy__mod {
+  display: flex;
+  align-items: center;
+  gap: var(--simm-space-2);
+  min-width: 0;
+}
+
+.telemetry-mod-policy__text {
+  min-width: 0;
 }
 
 .telemetry-mod-policy__name {

@@ -3,6 +3,19 @@
  * .wizard-steps, .wizard-options, .wizard__footer); only its own rows live here.
  */
 
+.welcome__game {
+  display: flex;
+  align-items: center;
+  gap: var(--simm-space-4);
+  min-width: 0;
+}
+
+.welcome__game-art {
+  flex: none;
+  width: 120px;
+  border-radius: var(--simm-radius);
+}
+
 .welcome__section {
   display: grid;
   gap: var(--simm-space-2);

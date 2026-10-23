@@ -30,6 +30,8 @@ import type {
 import { AnchoredContextMenu, type AnchoredContextMenuItem } from './AnchoredContextMenu';
 import { Icon } from './Icon';
 import { SimmButton } from './primitives';
+import { ModThumbnail, ThumbnailStack, type ModArtwork } from './media/ModThumbnail';
+import { useLibraryArtwork } from './useLibraryArtwork';
 
 type RuntimeKey = 'IL2CPP' | 'MONO';
 
@@ -232,6 +234,24 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
   const { confirm } = useAppDialogs();
   const { environments, loading: environmentsLoading, refreshEnvironments } = useEnvironmentStore();
   const downloadStatusStore = useOptionalDownloadStatusStore();
+  const getModArtwork = useLibraryArtwork();
+  const itemArtwork = useCallback((item: ModProfileItem): ModArtwork | null => (
+    getModArtwork(item.name)
+    ?? getModArtwork(item.fileName)
+    ?? getModArtwork(item.sourceId?.split('/').pop())
+  ), [getModArtwork]);
+  /** The Nexus collection tile, which SIMM keeps on the collection's download record. */
+  const collectionArtwork = useCallback((profile: StoredModProfile): ModArtwork | null => {
+    const collection = profile.manifest.collection;
+    if (!collection) return null;
+    const aggregateId = `collection:${collection.slug}:${collection.revisionNumber}`;
+    const download = downloadStatusStore?.downloads.find((entry) =>
+      entry.kind === 'collection'
+      && (entry.id === aggregateId || entry.profileId === profile.id)
+      && (entry.iconUrl || entry.iconCachePath)
+    );
+    return download ? { iconUrl: download.iconUrl, iconCachePath: download.iconCachePath } : null;
+  }, [downloadStatusStore?.downloads]);
   const [profiles, setProfiles] = useState<StoredModProfile[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
   const [selectedRuntime, setSelectedRuntime] = useState<RuntimeKey>('IL2CPP');
@@ -1182,10 +1202,13 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
     </div>
   );
 
-  const renderDiffItem = (item: ModProfileItem) => (
+  const renderDiffItem = (item: ModProfileItem, detail?: string) => (
     <span className="profiles-diff__item">
-      <strong className="ui-truncate" title={item.name}>{item.name}</strong>
-      <small>{itemTypeLabel(item)} · {sourceLabel(item.source)}</small>
+      <ModThumbnail {...itemArtwork(item)} name={item.name} size={20} />
+      <span className="profiles-diff__item-text">
+        <strong className="ui-truncate" title={item.name}>{item.name}</strong>
+        <small>{detail ?? `${itemTypeLabel(item)} · ${sourceLabel(item.source)}`}</small>
+      </span>
     </span>
   );
 
@@ -1229,6 +1252,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
 
       {compatibleEnvironments.length === 0 && !environmentsLoading ? (
         <div className="ui-empty">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name="cubes" /></span>
           <p className="ui-empty__title">No {selectedProfile ? runtimeLabel(selectedProfile.runtime) : ''} environment</p>
           <p className="ui-empty__copy">Profiles only apply to environments with the same runtime. Add an environment with this runtime first.</p>
         </div>
@@ -1285,10 +1309,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
                 {unavailableRows.map((row, index) => (
                   <li key={`${profileItemKey(row.item, index)}-unavailable`} className="profiles-diff__row">
                     <Icon name="triangleExclamation" className="profiles-diff__sign profiles-diff__sign--warn" />
-                    <span className="profiles-diff__item">
-                      <strong className="ui-truncate" title={row.item.name}>{row.item.name}</strong>
-                      <small>{row.message}</small>
-                    </span>
+                    {renderDiffItem(row.item, row.message)}
                     <span className="profiles-diff__note profiles-diff__note--warn">{statusLabels[row.status] ?? row.status}</span>
                   </li>
                 ))}
@@ -1346,6 +1367,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
     if (profileItems.length === 0) {
       return (
         <div className="ui-empty">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name="boxOpen" /></span>
           <p className="ui-empty__title">This profile has no items</p>
           <p className="ui-empty__copy">Update it from an environment to capture the mods, plugins, and UserLibs installed there.</p>
           <SimmButton type="button" variant="secondary" onClick={() => setFlow('update')} disabled={busy}>
@@ -1398,12 +1420,17 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
             return (
               <tr key={`${itemIdentity(item)}-${index}`} className="ui-row">
                 <td className="profiles-items__name">
-                  <strong className="ui-truncate" title={item.name}>{item.name}</strong>
-                  <small className="ui-truncate">
-                    {collectionItem
-                      ? `${collectionItem.requestedVersion} · Nexus file ${collectionItem.nexusFileId}${collectionItem.requestedAuthor ? ` · ${collectionItem.requestedAuthor}` : ''}`
-                      : itemFileIdentity(item)}
-                  </small>
+                  <span className="profiles-items__name-cell">
+                    <ModThumbnail {...itemArtwork(item)} name={item.name} size={24} />
+                    <span className="profiles-items__name-text">
+                      <strong className="ui-truncate" title={item.name}>{item.name}</strong>
+                      <small className="ui-truncate">
+                        {collectionItem
+                          ? `${collectionItem.requestedVersion} · Nexus file ${collectionItem.nexusFileId}${collectionItem.requestedAuthor ? ` · ${collectionItem.requestedAuthor}` : ''}`
+                          : itemFileIdentity(item)}
+                      </small>
+                    </span>
+                  </span>
                 </td>
                 <td>{itemTypeLabel(item)}</td>
                 <td>{collectionMeta ?? sourceLabel(item.source)}</td>
@@ -1596,6 +1623,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
           </ul>
         ) : (
           <div className="ui-empty">
+            <span className="ui-empty__emblem" aria-hidden="true"><Icon name={createEnvironmentId ? 'boxOpen' : 'cubes'} /></span>
             <p className="ui-empty__title">{createEnvironmentId ? 'Nothing installed yet' : 'Choose a source environment'}</p>
             <p className="ui-empty__copy">
               {createEnvironmentId
@@ -1657,6 +1685,10 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
             </form>
           ) : (
             <div className="profiles-detail__name-row">
+              {(() => {
+                const tile = collectionArtwork(profile);
+                return tile ? <ModThumbnail {...tile} name={profile.name} size={32} className="profiles-detail__tile" /> : null;
+              })()}
               <h2 className="profiles-detail__title" title={profile.name}>{profile.name}</h2>
               {profile.isDefault && <span className="ui-tag">Default</span>}
             </div>
@@ -1775,6 +1807,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
             </div>
           ) : profiles.length === 0 ? (
             <div className="ui-empty">
+              <span className="ui-empty__emblem" aria-hidden="true"><Icon name="layerGroup" /></span>
               <p className="ui-empty__title">No profiles yet</p>
               <p className="ui-empty__copy">Create one from an environment or import a shared JSON file.</p>
             </div>
@@ -1791,6 +1824,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
                   {group.profiles.map((profile) => {
                     const active = profile.id === selectedProfileId;
                     const inUse = (profile.activeEnvironmentIds?.length ?? 0) > 0;
+                    const tile = collectionArtwork(profile);
                     return (
                       <li key={profile.id}>
                         <button
@@ -1808,6 +1842,18 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
                           <span className="profiles-workspace__profile-name ui-truncate" title={profile.name}>{profile.name}</span>
                           {profile.isDefault && <span className="ui-tag">Default</span>}
                           <span className="profiles-workspace__profile-meta">
+                            {tile ? (
+                              <ModThumbnail {...tile} name={profile.name} size={20} className="profiles-workspace__tile" />
+                            ) : profile.manifest.items.length > 0 && (
+                              <ThumbnailStack
+                                size={20}
+                                max={4}
+                                items={profile.manifest.items.map((item) => ({
+                                  ...itemArtwork(item),
+                                  name: item.name,
+                                }))}
+                              />
+                            )}
                             {profile.manifest.items.length} {profile.manifest.items.length === 1 ? 'item' : 'items'}
                             {inUse ? ' · In use' : ''}
                           </span>
@@ -1843,6 +1889,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
               ? renderProfileDetail(selectedProfile)
               : !profilesLoading && (
                 <div className="ui-empty">
+                  <span className="ui-empty__emblem" aria-hidden="true"><Icon name="layerGroup" /></span>
                   <p className="ui-empty__title">Choose a profile</p>
                   <p className="ui-empty__copy">Select a profile on the left to see its items and apply it to an environment.</p>
                 </div>

@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { SimmButton, SimmDialogContent } from './primitives';
 import { ModIntegrationDialog } from './ModIntegrationDialog';
+import { GameArt } from './media/GameArt';
 import {
   createAsyncListenerScope,
   onAuthWaiting,
@@ -2030,6 +2031,7 @@ export function EnvironmentList({
       >
         {!isPage && (
           <header className="env-overview__card-header">
+            <GameArt appId={env.appId} className="env-overview__card-art" />
             <h3 className="env-overview__card-title ui-truncate" title={env.name}>{env.name}</h3>
             <span className={`ui-status ui-status--${status.tone}`}>{status.label}</span>
             <span className="ui-toolbar__spacer" />
@@ -2070,6 +2072,8 @@ export function EnvironmentList({
           </div>
         )}
 
+        <div className="env-overview__top">
+        <div className="env-overview__top-main">
         <div className="env-overview__intro">
           {editingDescription === env.id ? (
             <div className="env-overview__editor">
@@ -2310,6 +2314,9 @@ export function EnvironmentList({
             <dd className="ui-num">{isCheckingUpdate ? 'Checking…' : formatLastChecked(env.lastUpdateCheck)}</dd>
           </dl>
         </section>
+        </div>
+        {isPage && <GameArt appId={env.appId} className="env-overview__art" />}
+        </div>
 
         {isCompleted && (
           <section className="env-overview__section" aria-labelledby={`env-content-${env.id}`}>
@@ -2407,6 +2414,7 @@ export function EnvironmentList({
   if (environments.length === 0) {
     return (
       <div className="ui-empty">
+        <span className="ui-empty__emblem" aria-hidden="true"><Icon name="gamepad" /></span>
         <p className="ui-empty__title">No environments yet</p>
         <p className="ui-empty__copy">Add your Steam install, import a game folder, or download a separate branch to get started.</p>
         {onOpenWorkspace && (
@@ -2612,6 +2620,7 @@ export function EnvironmentList({
                 </div>
               ) : melonLoaderSelectorReleases.length === 0 ? (
                 <div className="ui-empty">
+                  <span className="ui-empty__emblem" aria-hidden="true"><Icon name="cube" /></span>
                   <p className="ui-empty__title">No releases found</p>
                   <p className="ui-empty__copy">SIMM could not load MelonLoader releases. Check your connection and open this dialog again.</p>
                 </div>

@@ -28,6 +28,8 @@ import { ConfirmOverlay } from './ConfirmOverlay';
 import { ApiService } from '../services/api';
 import { Icon } from './Icon';
 import { SimmButton } from './primitives';
+import { ModThumbnail } from './media/ModThumbnail';
+import { useLibraryArtwork } from './useLibraryArtwork';
 import type {
   ConfigDocument,
   ConfigEditOperation,
@@ -498,6 +500,7 @@ const ConfigEntryRow = memo(function ConfigEntryRow({ sectionId, entry, onChange
 });
 
 export function ConfigurationOverlay({ isOpen, environmentId }: Props) {
+  const getModArtwork = useLibraryArtwork();
   const [catalog, setCatalog] = useState<ConfigFileSummary[]>([]);
   const [documentCache, setDocumentCache] = useState<Record<string, ConfigDocument>>({});
   const [drafts, setDrafts] = useState<Record<string, FileDraft>>({});
@@ -1221,7 +1224,10 @@ export function ConfigurationOverlay({ isOpen, environmentId }: Props) {
                     <h3 className="ui-section-title config-explorer__group-title">Mod configs</h3>
                     {otherCatalogGroups.map(([groupName, files]) => (
                       <div key={groupName} className="config-explorer__subgroup">
-                        <p className="config-explorer__subgroup-label">{groupName}</p>
+                        <p className="config-explorer__subgroup-label">
+                          <ModThumbnail {...getModArtwork(groupName)} name={groupName} size={20} />
+                          <span className="ui-truncate">{groupName}</span>
+                        </p>
                         {files.map((file) => renderExplorerFile(file))}
                       </div>
                     ))}
@@ -1230,6 +1236,9 @@ export function ConfigurationOverlay({ isOpen, environmentId }: Props) {
 
                 {filteredCatalog.length === 0 && (
                   <div className="ui-empty config-explorer__empty" role={loadingFileSearchContents ? 'status' : undefined}>
+                    <span className="ui-empty__emblem" aria-hidden="true">
+                      <Icon name={loadingFileSearchContents || catalog.length > 0 ? 'search' : 'sliders'} />
+                    </span>
                     <p className="ui-empty__title">
                       {loadingFileSearchContents ? 'Searching file contents' : catalog.length === 0 ? 'No config files yet' : 'No matching files'}
                     </p>
@@ -1257,6 +1266,7 @@ export function ConfigurationOverlay({ isOpen, environmentId }: Props) {
 
           {!selectedFilePath ? (
             <div className="ui-empty config-workspace__empty">
+              <span className="ui-empty__emblem" aria-hidden="true"><Icon name="fileCode" /></span>
               <p className="ui-empty__title">Select a config file</p>
               <p className="ui-empty__copy">Choose a file on the left to see and edit its settings.</p>
             </div>
@@ -1367,6 +1377,9 @@ export function ConfigurationOverlay({ isOpen, environmentId }: Props) {
                 {editorMode === 'structured' ? (
                   visibleSections.length === 0 ? (
                     <div className="ui-empty">
+                      <span className="ui-empty__emblem" aria-hidden="true">
+                        <Icon name={activeDraft.sections.length === 0 ? 'sliders' : 'filter'} />
+                      </span>
                       <p className="ui-empty__title">{activeDraft.sections.length === 0 ? 'This file has no settings yet' : 'No matching settings'}</p>
                       <p className="ui-empty__copy">
                         {activeDraft.sections.length === 0
@@ -1378,6 +1391,10 @@ export function ConfigurationOverlay({ isOpen, environmentId }: Props) {
                     visibleSections.map((section) => (
                       <section key={section.id} className="config-section" aria-labelledby={`config-section-${section.id}`}>
                         <header className="config-section__head">
+                          {(() => {
+                            const artwork = getModArtwork(section.name);
+                            return artwork ? <ModThumbnail {...artwork} name={section.name} size={20} /> : null;
+                          })()}
                           <h4 id={`config-section-${section.id}`} className="config-section__title">{section.name}</h4>
                           <span className="config-section__count">{formatSettingCount(section.entries.length)}</span>
                           <span className="ui-toolbar__spacer" />

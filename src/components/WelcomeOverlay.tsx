@@ -4,6 +4,7 @@ import { ApiService } from '../services/api';
 import type { ExperienceMode, SecurityScannerStatus } from '../types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Icon } from './Icon';
+import { GameArt } from './media/GameArt';
 import { SimmButton } from './primitives';
 
 type WelcomeMode = 'setup' | 'upgradePrompt';
@@ -48,6 +49,7 @@ export function WelcomeOverlay({
   const [experienceMode, setExperienceMode] = useState<ExperienceMode>(initialExperienceMode);
   const [finishAction, setFinishAction] = useState<FinishAction>('none');
   const [steamInstallCount, setSteamInstallCount] = useState<number | null>(null);
+  const [steamAppId, setSteamAppId] = useState<string | null>(null);
   const [detectingSteam, setDetectingSteam] = useState(false);
   const [securityScannerStatus, setSecurityScannerStatus] = useState<SecurityScannerStatus | null>(null);
   const [loadingSecurityScannerStatus, setLoadingSecurityScannerStatus] = useState(false);
@@ -110,6 +112,7 @@ export function WelcomeOverlay({
       .then((installs) => {
         if (!cancelled) {
           setSteamInstallCount(installs.length);
+          setSteamAppId(installs[0]?.appId ?? null);
         }
       })
       .catch(() => {
@@ -385,15 +388,20 @@ export function WelcomeOverlay({
 
           {step === 'game' && (
             <>
-              <div className="wizard__intro">
-                <h2>Point SIMM at your game</h2>
-                <p>
-                  {detectingSteam
-                    ? 'Looking for Schedule I in Steam…'
-                    : steamInstallCount && steamInstallCount > 0
-                      ? 'Steam install found. Add Environment can link it; Steam keeps handling game updates, so no Steam sign-in is needed.'
-                      : 'No Steam install found yet. Add Environment can also import an existing game folder.'}
-                </p>
+              <div className="welcome__game">
+                {!detectingSteam && steamAppId && steamInstallCount && steamInstallCount > 0 ? (
+                  <GameArt appId={steamAppId} className="welcome__game-art" />
+                ) : null}
+                <div className="wizard__intro">
+                  <h2>Point SIMM at your game</h2>
+                  <p>
+                    {detectingSteam
+                      ? 'Looking for Schedule I in Steam…'
+                      : steamInstallCount && steamInstallCount > 0
+                        ? 'Steam install found. Add Environment can link it; Steam keeps handling game updates, so no Steam sign-in is needed.'
+                        : 'No Steam install found yet. Add Environment can also import an existing game folder.'}
+                  </p>
+                </div>
               </div>
 
               <section className="welcome__section" aria-labelledby="welcome-after-setup">

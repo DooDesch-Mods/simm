@@ -1001,7 +1001,7 @@ describe("ModLibraryOverlay", () => {
     ).toBeTruthy();
     const detailNavigation = nexusDetailHeader?.querySelector(".lib-detail__nav");
     const detailBackButton = detailNavigation?.querySelector("button");
-    const detailIcon = nexusDetailHeader?.querySelector(".lib-icon--detail");
+    const detailIcon = nexusDetailHeader?.querySelector(".lib-detail__icon");
     expect(detailBackButton).not.toBeNull();
     expect(detailIcon).not.toBeNull();
     expect(

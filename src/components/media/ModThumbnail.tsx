@@ -65,8 +65,8 @@ export function ThumbnailStack({ items, max = 4, size = 24, className }: Thumbna
   const rest = items.length - shown.length;
   return (
     <span className={cn('ui-thumb-stack', className)} aria-hidden="true">
-      {shown.map((item, index) => (
-        <ModThumbnail key={item.key ?? `${item.name}-${index}`} {...item} size={size} />
+      {shown.map(({ key, ...item }, index) => (
+        <ModThumbnail key={key ?? `${item.name}-${index}`} {...item} size={size} />
       ))}
       {rest > 0 && (
         <span className="ui-thumb ui-thumb--more" style={{ '--ui-thumb-size': `${size}px` } as React.CSSProperties}>

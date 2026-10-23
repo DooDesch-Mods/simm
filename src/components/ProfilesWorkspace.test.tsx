@@ -38,6 +38,7 @@ const dialogMocks = vi.hoisted(() => ({
   save: vi.fn(),
 }));
 
+vi.mock('./useLibraryArtwork', () => ({ useLibraryArtwork: () => () => null }));
 vi.mock('../stores/environmentStore', () => ({
   useEnvironmentStore: storeMocks.useEnvironmentStore,
 }));

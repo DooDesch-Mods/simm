@@ -8,7 +8,8 @@ import { useEnvironmentStore } from '../stores/environmentStore';
 import { getErrorMessage } from '../utils/errors';
 import { Icon } from './Icon';
 import type { IconName } from './icons';
-import { resolveImageSource } from './modCardHelpers';
+import { GameArt } from './media/GameArt';
+import { ModThumbnail } from './media/ModThumbnail';
 import { SimmButton } from './primitives';
 
 function statusLabel(status: TrackedDownload['status']) {
@@ -121,16 +122,43 @@ function gameEnvironmentId(download: TrackedDownload) {
 
 interface DownloadRowProps {
   download: TrackedDownload;
+  /** Steam app id of the environment a game download belongs to. */
+  gameAppId?: string | null;
   onOpenProfile?: (profileId: string) => void;
   onCancel?: (environmentId: string) => void;
   cancelling: boolean;
 }
 
-function DownloadRow({ download, onOpenProfile, onCancel, cancelling }: DownloadRowProps) {
+function DownloadMedia({ download, gameAppId }: { download: TrackedDownload; gameAppId?: string | null }) {
+  if (download.kind === 'game' && gameAppId) {
+    // The kind icon sits underneath, so it shows again if the art cannot load (offline).
+    return (
+      <span className="downloads-panel__media downloads-panel__media--wide" aria-hidden="true">
+        <Icon name={kindIcon(download.kind)} />
+        <GameArt appId={gameAppId} className="downloads-panel__game-art" />
+      </span>
+    );
+  }
+  if (download.iconUrl || download.iconCachePath) {
+    return (
+      <ModThumbnail
+        iconUrl={download.iconUrl}
+        iconCachePath={download.iconCachePath}
+        name={download.label}
+        size={32}
+        className={`downloads-panel__thumb${download.kind === 'collection' ? ' downloads-panel__thumb--banner' : ''}`}
+      />
+    );
+  }
+  return (
+    <span className="downloads-panel__media" aria-hidden="true">
+      <Icon name={kindIcon(download.kind)} />
+    </span>
+  );
+}
+
+function DownloadRow({ download, gameAppId, onOpenProfile, onCancel, cancelling }: DownloadRowProps) {
   const active = isActiveStatus(download.status);
-  const localIcon = resolveImageSource(download.iconCachePath);
-  const remoteIcon = resolveImageSource(download.iconUrl);
-  const iconSource = localIcon || remoteIcon;
   const indeterminate = isIndeterminate(download);
   const cancelEnvironmentId = active && onCancel ? gameEnvironmentId(download) : null;
   const showMessage = Boolean(download.message)
@@ -140,25 +168,7 @@ function DownloadRow({ download, onOpenProfile, onCancel, cancelling }: Download
 
   return (
     <li className={`downloads-panel__row downloads-panel__row--${download.status}`}>
-      {iconSource ? (
-        <img
-          src={iconSource}
-          alt=""
-          className="downloads-panel__icon-image"
-          aria-hidden="true"
-          onError={(event) => {
-            if (remoteIcon && iconSource !== remoteIcon && event.currentTarget.getAttribute('src') !== remoteIcon) {
-              event.currentTarget.src = remoteIcon;
-              return;
-            }
-            event.currentTarget.style.display = 'none';
-          }}
-        />
-      ) : (
-        <span className="downloads-panel__icon" aria-hidden="true">
-          <Icon name={kindIcon(download.kind)} />
-        </span>
-      )}
+      <DownloadMedia download={download} gameAppId={gameAppId} />
 
       <div className="downloads-panel__body">
         <span className="downloads-panel__label" title={download.label}>{download.label}</span>
@@ -208,7 +218,7 @@ function DownloadRow({ download, onOpenProfile, onCancel, cancelling }: Download
 
 export function DownloadsPanel({ presentation = 'panel', onClose, onOpenProfile }: DownloadsPanelProps = {}) {
   const { downloads } = useDownloadStatusStore();
-  const { cancelDownload } = useEnvironmentStore();
+  const { cancelDownload, environments } = useEnvironmentStore();
   const [cancellingIds, setCancellingIds] = useState<Set<string>>(() => new Set());
   const [cancelError, setCancelError] = useState<string | null>(null);
 
@@ -256,6 +266,7 @@ export function DownloadsPanel({ presentation = 'panel', onClose, onOpenProfile 
         <DownloadRow
           key={download.id}
           download={download}
+          gameAppId={(environments ?? []).find((environment) => environment.id === gameEnvironmentId(download))?.appId ?? null}
           onOpenProfile={onOpenProfile}
           onCancel={(environmentId) => void handleCancel(environmentId)}
           cancelling={cancellingIds.has(gameEnvironmentId(download) ?? '')}
@@ -286,9 +297,10 @@ export function DownloadsPanel({ presentation = 'panel', onClose, onOpenProfile 
       {cancelError && <p className="downloads-panel__error downloads-panel__error--banner" role="alert">{cancelError}</p>}
 
       {downloads.length === 0 ? (
-        <div className="downloads-panel__empty">
-          <p>No downloads right now.</p>
-          <p>Mod, framework, and game downloads show their progress here while you keep working.</p>
+        <div className="ui-empty downloads-panel__empty">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name="download" /></span>
+          <p className="ui-empty__title">No downloads right now.</p>
+          <p className="ui-empty__copy">Mod, framework, and game downloads show their progress here while you keep working.</p>
         </div>
       ) : (
         <div className="downloads-panel__sections">

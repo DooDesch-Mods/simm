@@ -9,6 +9,8 @@ import type {
 import { Dialog } from '@/components/ui/dialog';
 import { getSecurityDispositionBadgeConfig } from './securityScanHelpers';
 import { Icon } from './Icon';
+import { ModThumbnail } from './media/ModThumbnail';
+import { useModArtwork } from './media/useModArtwork';
 import { SimmButton, SimmDialogContent } from './primitives';
 
 interface SecurityScanReportOverlayProps {
@@ -147,6 +149,15 @@ const getThreatFamilyLabel = (families?: ThreatFamily[]): string | null => {
     : `Known malware family match: ${primary.displayName}`;
 };
 
+function getReportSubjectName(title: string): string | null {
+  const match = /^Security Findings\s*[-–—]\s*(.+)$/i.exec(title.trim());
+  if (!match) return null;
+  const name = match[1].replace(/\s*\((?:IL2CPP|Mono)\)$/i, '').trim();
+  // Generic flows ("Nexus Download") name no single mod.
+  if (!name || /^nexus (?:download|update|manual download)$/i.test(name)) return null;
+  return name;
+}
+
 export function SecurityScanReportView({
   title,
   report,
@@ -177,6 +188,7 @@ export function SecurityScanReportView({
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [activeSeverity, setActiveSeverity] = useState<Severity | 'All'>('All');
   const [selectedFindingKey, setSelectedFindingKey] = useState<string | null>(null);
+  const lookupArtwork = useModArtwork();
 
   useEffect(() => {
     if (open) {
@@ -255,6 +267,12 @@ export function SecurityScanReportView({
   const selectedFindingIndex = selectedFinding ? filteredFindings.indexOf(selectedFinding) : -1;
   const selectedKey = selectedFinding ? getFindingKey(selectedFinding, selectedFindingIndex) : null;
 
+  // Titles read "Security Findings - <mod>": the mod gets its library artwork in the header.
+  const subjectName = getReportSubjectName(title);
+  const subjectArtwork = subjectName
+    ? lookupArtwork(subjectName) ?? files.map((file) => lookupArtwork(file.fileName)).find(Boolean) ?? null
+    : null;
+
   const shellContent = (
     <>
       <header className="security-report__header">
@@ -267,6 +285,14 @@ export function SecurityScanReportView({
           </div>
         )}
         <div className="security-report__title-row">
+          {subjectName && (
+            <ModThumbnail
+              name={subjectName}
+              iconUrl={subjectArtwork?.iconUrl}
+              iconCachePath={subjectArtwork?.iconCachePath}
+              size={48}
+            />
+          )}
           <div className="security-report__titles">
             <h2 className="security-report__title">{title}</h2>
             <span className={`ui-status ui-status--${summaryStyle.tone}`}>{summaryStyle.label}</span>

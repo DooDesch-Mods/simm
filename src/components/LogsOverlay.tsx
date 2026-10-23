@@ -19,6 +19,8 @@ import { AnchoredContextMenu, type AnchoredContextMenuItem } from './AnchoredCon
 import { Icon } from './Icon';
 import { SimmButton } from './primitives';
 import { useModLibraryStore } from '../stores/modLibraryStore';
+import { ModThumbnail, type ModArtwork } from './media/ModThumbnail';
+import { useLibraryArtwork } from './useLibraryArtwork';
 
 const INITIAL_LOG_LINE_LIMIT = 4000;
 const LOG_LINE_CHUNK_SIZE = 4000;
@@ -371,6 +373,7 @@ function formatRelativeTime(timestamp: string | null): string {
 }
 
 const LogStreamRow = memo(function LogStreamRow({
+  artwork,
   line,
   searchQuery,
   selected,
@@ -378,6 +381,7 @@ const LogStreamRow = memo(function LogStreamRow({
   onModFilter,
   onSelect,
 }: {
+  artwork: ModArtwork | null;
   line: LogLine;
   searchQuery: string;
   selected: boolean;
@@ -432,7 +436,8 @@ const LogStreamRow = memo(function LogStreamRow({
               onModFilter(line, key);
             }}
           >
-            {line.modTag}
+            {artwork && <ModThumbnail {...artwork} name={line.modTag} size={16} />}
+            <span className="ui-truncate">{line.modTag}</span>
           </button>
         ) : (
           <span className="logs-panel__line-category">{getCategoryLabel(line.category)}</span>
@@ -446,6 +451,7 @@ const LogStreamRow = memo(function LogStreamRow({
 const LogStream = memo(function LogStream({
   containerRef,
   error,
+  getArtwork,
   isLiveFile,
   loading,
   loadingOlder,
@@ -463,6 +469,7 @@ const LogStream = memo(function LogStream({
 }: {
   containerRef: React.MutableRefObject<HTMLDivElement | null>;
   error: string | null;
+  getArtwork: (name: string | null | undefined) => ModArtwork | null;
   isLiveFile: boolean;
   loading: boolean;
   loadingOlder: boolean;
@@ -571,6 +578,7 @@ const LogStream = memo(function LogStream({
     >
       {error ? (
         <div className="ui-empty logs-panel__empty" role="alert">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name="triangleExclamation" /></span>
           <p className="ui-empty__title">Could not read this log</p>
           <p className="ui-empty__copy">{error}</p>
           <p className="ui-empty__copy">Check that the file still exists, then choose Reload from the More menu.</p>
@@ -587,11 +595,13 @@ const LogStream = memo(function LogStream({
         </div>
       ) : !selectedLogFile ? (
         <div className="ui-empty logs-panel__empty">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name="fileLines" /></span>
           <p className="ui-empty__title">No logs yet</p>
           <p className="ui-empty__copy">MelonLoader writes Latest.log when the game starts. Play this environment once, then come back here to read it.</p>
         </div>
       ) : visibleLines.length === 0 ? (
         <div className="ui-empty logs-panel__empty">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name={logLineCount === 0 ? 'fileLines' : 'filter'} /></span>
           <p className="ui-empty__title">{logLineCount === 0 ? 'No log content yet' : 'No lines match the current filters'}</p>
           <p className="ui-empty__copy">
             {logLineCount === 0
@@ -619,6 +629,7 @@ const LogStream = memo(function LogStream({
             return (
               <LogStreamRow
                 key={key}
+                artwork={getArtwork(line.modTag)}
                 line={line}
                 searchQuery={searchQuery}
                 selected={key === selectedLineKey}
@@ -643,6 +654,7 @@ const LogStream = memo(function LogStream({
 
 export function LogsOverlay({ isOpen, environmentId, onOpenModLibraryView }: Props) {
   const { library: sharedLibrary, ensureLibrary } = useModLibraryStore();
+  const getModArtwork = useLibraryArtwork();
   const [logFiles, setLogFiles] = useState<LogFile[]>([]);
   const [selectedLogPath, setSelectedLogPath] = useState<string | null>(null);
   const [logLines, setLogLines] = useState<LogLine[]>([]);
@@ -1579,6 +1591,7 @@ export function LogsOverlay({ isOpen, environmentId, onOpenModLibraryView }: Pro
                   title={`${item.modTag}: ${pluralize(item.count, 'line')}, ${pluralize(item.errorCount, 'error')}, last at ${formatRelativeTime(item.lastLogTime)}`}
                   onClick={() => setSelectedModTag((current) => (current && normalizeModTag(current) === normalizeModTag(item.modTag) ? null : item.modTag))}
                 >
+                  <ModThumbnail {...getModArtwork(item.modTag)} name={item.modTag} size={20} />
                   <span className="logs-panel__mod-name">{item.modTag}</span>
                   {item.errorCount > 0 && (
                     <span className="logs-panel__mod-errors">
@@ -1741,6 +1754,7 @@ export function LogsOverlay({ isOpen, environmentId, onOpenModLibraryView }: Pro
             <LogStream
               containerRef={logContainerRef}
               error={error}
+              getArtwork={getModArtwork}
               isLiveFile={isLiveFile}
               loading={loading}
               loadingOlder={loadingOlder}
@@ -1770,6 +1784,9 @@ export function LogsOverlay({ isOpen, environmentId, onOpenModLibraryView }: Pro
         {selectedLine && (
           <aside className="logs-panel__inspector" aria-label="Selected line">
             <header className="logs-panel__inspector-head">
+              {selectedLine.modTag && (
+                <ModThumbnail {...getModArtwork(selectedLine.modTag)} name={selectedLine.modTag} size={24} />
+              )}
               <div className="logs-panel__inspector-titles">
                 <h3>Line {selectedLine.lineNumber}</h3>
                 <p className="ui-meta">
