@@ -50,6 +50,7 @@ import {
   summarizeEnvironmentStatus,
 } from './shell/environmentPresentation';
 import { useEnvironmentModUpdateCounts } from './shell/useEnvironmentModUpdateCounts';
+import { GameArt } from './media/GameArt';
 import { EnvironmentWorkspaceHeader, type EnvironmentWorkspaceTab } from './shell/EnvironmentWorkspaceHeader';
 import type {
   Environment,
@@ -641,6 +642,7 @@ function HomeEnvironmentRow({
 
   return (
     <li className={`home-env${primary ? ' home-env--primary' : ''}`}>
+      {primary && <GameArt appId={environment.appId} className="home-env__art" />}
       <button
         type="button"
         className="home-env__identity"

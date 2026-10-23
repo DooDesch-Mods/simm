@@ -800,3 +800,88 @@ body {
 [data-slot='switch'][aria-checked='true'] [data-slot='switch-thumb'] {
   background: #fff;
 }
+
+/* ------------------------------------------------------------- Media
+ * Real artwork (mod icons, game art) wherever the object has one. Images are
+ * decorative next to their name; fallbacks are neutral, never gradients.
+ */
+
+.ui-thumb {
+  --ui-thumb-size: 32px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--ui-thumb-size);
+  height: var(--ui-thumb-size);
+  overflow: hidden;
+  border-radius: calc(var(--ui-thumb-size) * 0.22);
+  background: var(--simm-raised-hover);
+  color: var(--simm-text-2);
+  font-size: calc(var(--ui-thumb-size) * 0.44);
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.ui-thumb--image {
+  background: var(--simm-sunken);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--simm-text) 8%, transparent);
+}
+
+.ui-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-thumb--more {
+  font-size: calc(var(--ui-thumb-size) * 0.38);
+  color: var(--simm-text-2);
+}
+
+.ui-thumb-stack {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-thumb-stack > .ui-thumb {
+  box-shadow: 0 0 0 2px var(--simm-panel);
+}
+
+.ui-thumb-stack > .ui-thumb + .ui-thumb {
+  margin-left: calc(var(--ui-thumb-size) * -0.28);
+}
+
+.ui-game-art {
+  display: block;
+  overflow: hidden;
+  background: var(--simm-sunken);
+}
+
+.ui-game-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-game-art--header {
+  aspect-ratio: 460 / 215;
+}
+
+.ui-game-art--hero {
+  aspect-ratio: 1920 / 620;
+}
+
+/* Empty-state emblem: one icon in a soft ring above the title. */
+.ui-empty__emblem {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--simm-space-1);
+  border-radius: 999px;
+  background: var(--simm-accent-soft);
+  color: var(--simm-accent-text);
+  font-size: 1.15rem;
+}
