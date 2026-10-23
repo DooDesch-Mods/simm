@@ -621,10 +621,10 @@ function HomeEnvironmentRow({
   const nextStep = !playable
     ? { label: 'Open', onClick: () => onOpenEnvironment(environment.id) }
     : environment.updateAvailable
-      ? { label: 'Update game', onClick: () => onOpenEnvironment(environment.id) }
+      ? { label: 'Update Game', onClick: () => onOpenEnvironment(environment.id) }
       : modUpdateCount > 0
         ? {
-            label: modUpdateCount === 1 ? 'Review 1 update' : `Review ${modUpdateCount} updates`,
+            label: modUpdateCount === 1 ? 'Review 1 Update' : `Review ${modUpdateCount} Updates`,
             onClick: () => onOpenModUpdates(environment.id),
           }
         : null;
@@ -765,7 +765,7 @@ function HomeDashboard({
         {!environmentsLoading && environments.length > 0 && (
           <SimmButton type="button" variant="ghost" onClick={onOpenModLibrary}>
             <Icon name="boxOpen" />
-            Find mods
+            Find Mods
           </SimmButton>
         )}
       </header>
@@ -783,7 +783,7 @@ function HomeDashboard({
           </p>
           <SimmButton type="button" onClick={onOpenWizard}>
             <Icon name="plus" />
-            Add environment
+            Add Environment
           </SimmButton>
         </div>
       ) : (
@@ -979,6 +979,7 @@ function ShellNavItem({
   onClick,
   count,
   countTone,
+  showLabel,
 }: {
   label: string;
   icon: IconName;
@@ -986,6 +987,7 @@ function ShellNavItem({
   onClick: () => void;
   count?: number;
   countTone?: 'attention';
+  showLabel: boolean;
 }) {
   return (
     <button
@@ -996,8 +998,8 @@ function ShellNavItem({
       title={label}
     >
       <Icon name={icon} />
-      <span className="shell-nav__label">{label}</span>
-      {count !== undefined && count > 0 && (
+      {showLabel && <span className="shell-nav__label">{label}</span>}
+      {showLabel && count !== undefined && count > 0 && (
         <span className={`shell-nav__count${countTone === 'attention' ? ' shell-nav__count--attention' : ''}`}>{count}</span>
       )}
     </button>
@@ -1052,8 +1054,9 @@ const AppShellSidebar = memo(function AppShellSidebar({
   return (
     <aside className={shellSidebarClassName} aria-label="Primary navigation" onTransitionEnd={onShellNavTransitionEnd}>
       <nav className="shell-nav shell-nav--primary" aria-label="Workspaces">
-        <ShellNavItem label="Home" icon="house" active={view === 'home'} onClick={onOpenHome} />
+        <ShellNavItem showLabel={shellNavExpandedContentVisible} label="Home" icon="house" active={view === 'home'} onClick={onOpenHome} />
         <ShellNavItem
+          showLabel={shellNavExpandedContentVisible}
           label="Mod Library"
           icon="boxOpen"
           active={view === 'library' || view === 'securityReport'}
@@ -1061,19 +1064,19 @@ const AppShellSidebar = memo(function AppShellSidebar({
           count={totalModUpdates}
           countTone="attention"
         />
-        <ShellNavItem label="Profiles" icon="userGear" active={view === 'profiles'} onClick={() => onOpenWorkspace({ view: 'profiles' })} />
-        <ShellNavItem label="Saves" icon="save" active={view === 'saveBackups'} onClick={() => onOpenWorkspace({ view: 'saveBackups' })} />
+        <ShellNavItem showLabel={shellNavExpandedContentVisible} label="Profiles" icon="userGear" active={view === 'profiles'} onClick={() => onOpenWorkspace({ view: 'profiles' })} />
+        <ShellNavItem showLabel={shellNavExpandedContentVisible} label="Saves" icon="save" active={view === 'saveBackups'} onClick={() => onOpenWorkspace({ view: 'saveBackups' })} />
       </nav>
 
       <section className="shell-envs" aria-labelledby="shell-envs-title">
         <div className="shell-envs__header">
-          <h2 className="shell-envs__title" id="shell-envs-title">Environments</h2>
+          <h2 className="shell-envs__title" id="shell-envs-title">{shellNavExpandedContentVisible ? 'Environments' : <span className="sr-only">Environments</span>}</h2>
           <button
             type="button"
             className={`shell-envs__add${view === 'wizard' ? ' shell-envs__add--active' : ''}`}
             onClick={() => onOpenWorkspace({ view: 'wizard' })}
-            aria-label="Add environment"
-            title="Add environment"
+            aria-label="Add Environment"
+            title="Add Environment"
           >
             <Icon name="plus" />
           </button>
@@ -1101,12 +1104,14 @@ const AppShellSidebar = memo(function AppShellSidebar({
                     title={`${environment.name} · ${runtimeLabel(environment.runtime)} · ${status.label}`}
                   >
                     <span className={`shell-env__dot shell-env__dot--${status.tone}`} aria-hidden="true" />
-                    <span className="shell-env__text">
-                      <span className="shell-env__name">{environment.name}</span>
-                      <span className="shell-env__meta">
-                        {runtimeLabel(environment.runtime)} · {status.label}
+                    {shellNavExpandedContentVisible && (
+                      <span className="shell-env__text">
+                        <span className="shell-env__name">{environment.name}</span>
+                        <span className="shell-env__meta">
+                          {runtimeLabel(environment.runtime)} · {status.label}
+                        </span>
                       </span>
-                    </span>
+                    )}
                     <span className="shell-env__initial" aria-hidden="true">{environment.name.trim().charAt(0).toUpperCase()}</span>
                   </button>
                 </li>
@@ -1119,12 +1124,12 @@ const AppShellSidebar = memo(function AppShellSidebar({
       </section>
 
       <nav className="shell-nav shell-nav--secondary" aria-label="App">
-        <ShellNavItem label="Accounts" icon="userCircle" active={view === 'accounts'} onClick={() => onOpenWorkspace({ view: 'accounts' })} />
+        <ShellNavItem showLabel={shellNavExpandedContentVisible} label="Accounts" icon="userCircle" active={view === 'accounts'} onClick={() => onOpenWorkspace({ view: 'accounts' })} />
         {telemetryAvailable && (
-          <ShellNavItem label="Telemetry" icon="waveSquare" active={view === 'telemetry'} onClick={() => onOpenWorkspace({ view: 'telemetry' })} />
+          <ShellNavItem showLabel={shellNavExpandedContentVisible} label="Telemetry" icon="waveSquare" active={view === 'telemetry'} onClick={() => onOpenWorkspace({ view: 'telemetry' })} />
         )}
-        <ShellNavItem label="Help" icon="circleQuestion" active={view === 'help'} onClick={() => onOpenWorkspace({ view: 'help' })} />
-        <ShellNavItem label="Settings" icon="cog" active={view === 'settings'} onClick={() => onOpenWorkspace({ view: 'settings' })} />
+        <ShellNavItem showLabel={shellNavExpandedContentVisible} label="Help" icon="circleQuestion" active={view === 'help'} onClick={() => onOpenWorkspace({ view: 'help' })} />
+        <ShellNavItem showLabel={shellNavExpandedContentVisible} label="Settings" icon="cog" active={view === 'settings'} onClick={() => onOpenWorkspace({ view: 'settings' })} />
         <button
           type="button"
           className="shell-nav__item shell-nav__collapse"
@@ -1133,7 +1138,7 @@ const AppShellSidebar = memo(function AppShellSidebar({
           title={shellNavCollapsed ? 'Expand navigation sidebar' : 'Collapse navigation sidebar'}
         >
           <Icon name={shellNavCollapsed ? 'anglesRight' : 'anglesLeft'} />
-          <span className="shell-nav__label">Collapse</span>
+          {shellNavExpandedContentVisible && <span className="shell-nav__label">Collapse</span>}
         </button>
       </nav>
     </aside>
