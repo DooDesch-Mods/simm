@@ -399,9 +399,8 @@
 }
 
 /* ------------------------------------------------------------------
- * Shared legacy classes still used by the Add Environment wizard,
- * Welcome, Config, and Logs. Owned here only because they carry the
- * settings- prefix; delete once those surfaces stop using them.
+ * Shared legacy classes still used by Welcome. Owned here only because
+ * they carry the settings- prefix; delete once Welcome stops using them.
  */
 
 .settings-eyebrow {
@@ -418,77 +417,4 @@
   background: var(--simm-danger-soft);
   color: var(--simm-danger-text);
   font-size: var(--simm-text-sm);
-}
-
-.settings-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--simm-space-1);
-  height: 1.25rem;
-  padding: 0 0.4rem;
-  border: 1px solid var(--simm-line-strong);
-  border-radius: var(--simm-radius-sm);
-  color: var(--simm-text-2);
-  font-size: var(--simm-text-xs);
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.settings-section__heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--simm-space-4);
-}
-
-.settings-section__heading h4 {
-  margin: 0;
-  color: var(--simm-text);
-  font-size: var(--simm-text-base);
-  font-weight: 600;
-}
-
-.settings-field-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--simm-space-3);
-}
-
-.settings-field-card {
-  display: grid;
-  gap: var(--simm-space-2);
-  min-width: 0;
-}
-
-.settings-field-card--full {
-  grid-column: 1 / -1;
-}
-
-.settings-field-card label {
-  margin: 0;
-  color: var(--simm-text-2);
-  font-size: var(--simm-text-sm);
-  font-weight: 500;
-}
-
-.settings-field-card input,
-.settings-field-card textarea {
-  width: 100%;
-  min-width: 0;
-}
-
-.settings-inline-field {
-  display: flex;
-  align-items: center;
-  gap: var(--simm-space-2);
-}
-
-.settings-inline-field input {
-  flex: 1 1 auto;
-}
-
-@media (max-width: 900px) {
-  .settings-field-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }

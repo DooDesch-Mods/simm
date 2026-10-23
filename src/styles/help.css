@@ -1,347 +1,125 @@
-.help-overlay {
-  width: 100%;
-  max-width: none;
-  height: 100%;
+/*
+ * Help: task-first guidance. Line tabs, flat sections, no cards.
+ */
+
+.help-page {
+  flex: 1 1 auto;
   min-height: 0;
-  margin: 0;
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
 }
 
-.help-pane {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0.9rem 1rem 1rem;
-  display: grid;
-  gap: 0.8rem;
-  align-content: start;
+.help-body:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--simm-accent-line);
 }
 
-.help-overview {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.85rem;
-  align-items: flex-start;
-  padding: 0.88rem 0.95rem;
-  border-radius: 0.68rem;
-  border: 1px solid var(--workspace-stroke-soft);
-  background: var(--workspace-surface-muted-soft);
-}
-
-.help-overview__copy {
-  display: grid;
-  gap: 0.28rem;
+.help-content {
   max-width: 52rem;
 }
 
-.help-eyebrow {
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--workspace-eyebrow-color);
-}
-
-.help-overview__copy h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
-  color: var(--workspace-title-color);
-}
-
-.help-overview__copy p {
-  margin: 0;
-  color: var(--workspace-copy-color);
-  line-height: 1.55;
-}
-
-.help-overview__badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.42rem;
-  justify-content: flex-end;
-  align-content: flex-start;
-}
-
-.help-badge {
-  border-color: rgba(117, 174, 247, 0.28);
-  background: color-mix(in srgb, var(--workspace-surface-muted-soft, #1d2b3f) 74%, #3f86d8 26%);
-  color: #d8ebff;
-}
-
-.help-layout {
+.help-content--grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.8fr);
-  gap: 0.85rem;
-  align-items: start;
-}
-
-.help-layout--reference {
-  grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 0.9fr);
-}
-
-.help-panel,
-.help-task-card,
-.help-reference-card,
-.help-callout-card {
-  display: grid;
-  align-content: start;
-  gap: 0.78rem;
-  padding: 0.92rem 0.98rem;
-  border-radius: 0.68rem;
-  border: 1px solid var(--workspace-stroke);
-  background: var(--workspace-surface-card);
-  box-shadow: 0 8px 16px rgba(4, 10, 19, 0.14);
-}
-
-.help-panel--quiet {
-  background: var(--workspace-surface-muted-soft);
-  border-color: var(--workspace-stroke-soft);
-}
-
-.help-card-header,
-.help-task-card__header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-}
-
-.help-card-header__icon {
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 0.58rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 0.95rem;
-  color: var(--workspace-title-color);
-  background: var(--workspace-icon-surface);
-  border: 1px solid var(--workspace-stroke-soft);
-  box-shadow: inset 0 1px 0 rgba(223, 237, 255, 0.12);
-}
-
-.help-card-header > div:last-child,
-.help-task-card__header > div:last-child {
-  display: grid;
-  gap: 0.2rem;
-}
-
-.help-card-header h3,
-.help-section-group__header h3,
-.help-task-card h4,
-.help-reference-card h4 {
-  margin: 0;
-  color: var(--workspace-title-color);
-}
-
-.help-card-header p,
-.help-task-card p,
-.help-section-group__header p {
-  margin: 0;
-  color: var(--workspace-copy-color);
-  line-height: 1.52;
-}
-
-.help-action-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-.help-action-card {
-  width: 100%;
-  height: auto;
-  min-height: 2.45rem;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 0.55rem;
-  align-items: center;
-  text-align: left;
-  justify-content: stretch;
-  padding: 0.54rem 0.66rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--workspace-stroke-soft);
-  background: var(--workspace-surface-card-strong);
-  color: var(--workspace-title-color);
-  font-weight: 650;
-}
-
-.help-action-card:hover {
-  border-color: rgba(128, 171, 230, 0.44);
-  background: linear-gradient(180deg, rgba(25, 39, 58, 0.96), rgba(17, 28, 42, 0.96));
-}
-
-.help-action-card > span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.help-action-card__chevron {
-  color: var(--primary-btn-color);
-  font-size: 0.9rem;
-}
-
-.help-step-list {
-  display: grid;
-  gap: 0.58rem;
-}
-
-.help-step-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.68rem;
-  padding: 0.72rem 0.76rem;
-  border-radius: 0.58rem;
-  border: 1px solid var(--workspace-stroke-soft);
-  background: var(--workspace-surface-muted-soft);
-}
-
-.help-step-card__index {
-  width: 1.95rem;
-  height: 1.95rem;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #eef5ff;
-  background: linear-gradient(180deg, #4f92de, #3b6faf);
-}
-
-.help-step-card__body {
-  display: grid;
-  gap: 0.22rem;
-}
-
-.help-step-card__body h4 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--workspace-title-color);
-}
-
-.help-step-card__body p {
-  margin: 0;
-  color: var(--workspace-copy-color);
-  line-height: 1.48;
-}
-
-.help-section-group {
-  display: grid;
-  gap: 0.68rem;
-}
-
-.help-section-group__header {
-  display: grid;
-  gap: 0.22rem;
-}
-
-.help-task-grid,
-.help-reference-grid {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.help-task-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--simm-space-6) var(--simm-space-8);
+  max-width: 68rem;
 }
 
-.help-reference-grid {
-  grid-template-columns: minmax(0, 1fr);
+.help-heading {
+  margin: 0 0 var(--simm-space-2);
+  color: var(--simm-text);
+  font-size: var(--simm-text-md);
+  font-weight: 600;
 }
 
-.help-reference-card__header {
+/* Get started steps */
+.help-steps {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  color: #eef5ff;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.help-reference-card--summary {
-  gap: 0.75rem;
+.help-step {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--simm-space-4);
+  padding: var(--simm-space-4) 0;
+  border-bottom: 1px solid var(--simm-line);
+}
+
+.help-step__index {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--simm-line-strong);
+  border-radius: 999px;
+  color: var(--simm-text-2);
+  font-size: var(--simm-text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.help-step__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.help-step__copy h4 {
+  margin: 0;
+  color: var(--simm-text);
+  font-size: var(--simm-text-base);
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.help-step__copy p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--simm-text-2);
+  font-size: var(--simm-text-sm);
+}
+
+/* Task and reference sections */
+.help-topic {
+  min-width: 0;
+  padding-top: var(--simm-space-4);
+  border-top: 1px solid var(--simm-line);
 }
 
 .help-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--simm-space-2);
   margin: 0;
-  padding-left: 1.15rem;
-  color: #cbd7e7;
+  padding-left: var(--simm-space-4);
+  list-style: disc;
+  color: var(--simm-text-2);
+  font-size: var(--simm-text-sm);
   line-height: 1.5;
 }
 
-.help-list li + li {
-  margin-top: 0.34rem;
+.help-list li::marker {
+  color: var(--simm-text-3);
 }
 
-.help-list--compact {
-  font-size: 0.84rem;
-}
-
-.help-callout-card code {
+.help-code {
   display: block;
-  padding: 0.7rem 0.8rem;
-  border-radius: 0.7rem;
-  background: rgba(8, 14, 22, 0.55);
-  color: #dce9fb;
+  margin-top: var(--simm-space-2);
+  padding: var(--simm-space-2) var(--simm-space-3);
+  border: 1px solid var(--simm-line);
+  border-radius: var(--simm-radius);
+  background: var(--simm-sunken);
+  color: var(--simm-text);
+  font-size: var(--simm-text-xs);
   overflow-wrap: anywhere;
-  font-family: 'Courier New', monospace;
 }
 
-.help-tabs {
-  min-width: 0;
-  gap: 0.72rem;
-}
-
-.help-tabs__list {
-  width: 100%;
-  justify-content: flex-start;
-  gap: 0.32rem;
-  padding: 0 0 0.35rem;
-  border-bottom: 1px solid var(--workspace-stroke-soft);
-  color: var(--workspace-copy-color);
-}
-
-.help-tabs__list [data-slot="tabs-trigger"] {
-  flex: 0 0 auto;
-  min-width: 6.4rem;
-  height: 2rem;
-  border-radius: 0.42rem;
-  color: var(--workspace-copy-color);
-}
-
-.help-tabs__list [data-slot="tabs-trigger"][data-active] {
-  color: var(--workspace-title-color);
-  background: var(--workspace-surface-muted-soft);
-  border-color: var(--workspace-stroke-soft);
-}
-
-.help-tabs__content {
-  display: grid;
-  gap: 0.68rem;
-  min-width: 0;
-}
-
-.help-separator {
-  background: var(--workspace-stroke-soft);
-}
-
-@media (max-width: 900px) {
-
-  .help-action-grid,
-  .help-task-grid,
-  .help-reference-grid {
+@media (max-width: 1100px) {
+  .help-content--grid {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.help-section {
-  margin-bottom: 0.85rem;
-  padding: 0.85rem 0.95rem;
 }

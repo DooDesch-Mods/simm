@@ -19,7 +19,6 @@ import type {
   Environment,
   ModProfileApplyResult,
   ModProfileImportPlan,
-  ModProfileImportPlanItem,
   ModProfileManifest,
   ModProfileCollectionItem,
   ModProfileItem,
@@ -140,10 +139,6 @@ function profileFileName(name: string): string {
 
 function isCompatibleEnvironment(environment: Environment, profile: StoredModProfile | null): boolean {
   return Boolean(profile) && runtimeKey(environment.runtime) === runtimeKey(profile?.runtime);
-}
-
-function planItemStatusClass(item: ModProfileImportPlanItem): string {
-  return item.status.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
 }
 
 function effectiveNexusDownloadAccess(
@@ -1334,10 +1329,10 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
         <thead>
           <tr>
             <th scope="col">Name</th>
-            <th scope="col">Type</th>
-            <th scope="col">Source</th>
-            <th scope="col">State</th>
-            {selectedCollection && <th scope="col"><span className="sr-only">Actions</span></th>}
+            <th scope="col" className="profiles-items__col-type">Type</th>
+            <th scope="col" className="profiles-items__col-source">Source</th>
+            <th scope="col" className="profiles-items__col-state">State</th>
+            {selectedCollection && <th scope="col" className="profiles-items__col-action"><span className="sr-only">Actions</span></th>}
           </tr>
         </thead>
         <tbody>
@@ -1381,7 +1376,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
                 </td>
                 <td>{itemTypeLabel(item)}</td>
                 <td>{collectionMeta ?? sourceLabel(item.source)}</td>
-                <td title={collectionItem?.statusMessage}>
+                <td title={collectionItem?.statusMessage ?? undefined}>
                   {collectionState ? (
                     <span className={`ui-status ui-status--${collectionState.tone}`}>{collectionState.label}</span>
                   ) : item.enabled === false ? (
@@ -1391,7 +1386,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
                 {selectedCollection && (
                   <td className="profiles-items__action">
                     {collectionItem && collectionItem.selected && collectionReady && (
-                      <label
+                      <div
                         className="profiles-items__toggle"
                         title="Choose whether this downloaded mod is installed when the profile is applied."
                       >
@@ -1406,7 +1401,7 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
                           )}
                         />
                         <span>{collectionEnableBusy ? 'Saving…' : item.enabled === false ? 'Skipped' : 'Install'}</span>
-                      </label>
+                      </div>
                     )}
                     {collectionItem && collectionItem.selected && collectionItem.status !== 'ready' && (
                       <SimmButton
