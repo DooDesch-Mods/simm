@@ -634,11 +634,11 @@
 
   .logs-panel__shell--inspecting .logs-panel__inspector {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 16rem;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
       'head actions'
-      'content facts';
+      'facts facts';
     gap: var(--simm-space-2) var(--simm-space-5);
     padding: var(--simm-space-2) var(--simm-space-4) var(--simm-space-3);
     border-left: 0;
@@ -662,10 +662,10 @@
     font-size: var(--simm-text-base);
   }
 
+  /* The selected line is already expanded in the stream above; docked below,
+   * the inspector carries only its facts and actions. */
   .logs-panel__inspector-content {
-    grid-area: content;
-    max-height: 5.5rem;
-    min-height: 0;
+    display: none;
   }
 
   .logs-panel__inspector-actions {
@@ -677,8 +677,11 @@
   /* Sized by the message block, never the other way round. */
   .logs-panel__inspector-facts {
     grid-area: facts;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--simm-space-2) var(--simm-space-8);
     min-height: 0;
+    max-height: 5.5rem;
     overflow: auto;
-    contain: size;
   }
 }

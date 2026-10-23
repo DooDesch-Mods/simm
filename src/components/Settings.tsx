@@ -1360,7 +1360,7 @@ export function Settings({ isOpen, onClose, onRunSetupGuide }: SettingsProps) {
 
                   <SettingRow
                     label="App mode"
-                    help="Player keeps everyday mod actions up front. Power User also shows branch installs and developer tooling."
+                    help="Power User adds separate Steam branch installs to Add Environment. Everything else is the same in both modes."
                   >
                     <SettingsSelect
                       ariaLabel="App mode"

@@ -387,8 +387,7 @@
 
 .shell-env__meta {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   color: var(--simm-text-3);
   font-size: var(--simm-text-xs);
   line-height: 1.3;
