@@ -1260,6 +1260,94 @@ describe('ModsOverlay', () => {
     });
   });
 
+  it('leaves mods with a security exception out of Update All', async () => {
+    const suspiciousScan = {
+      state: 'review',
+      verified: false,
+      disposition: {
+        classification: 'Suspicious',
+        headline: 'Potentially malicious',
+        summary: 'Suspicious behaviour was found.',
+        blockingRecommended: false,
+        relatedFindingIds: [],
+      },
+      totalFindings: 1,
+      threatFamilyCount: 0,
+    };
+    apiMocks.getMods.mockResolvedValue({
+      mods: [
+        { name: 'Alpha Mod', fileName: 'Alpha.dll', path: 'C:/env/Mods/Alpha.dll', source: 'thunderstore', managed: true, disabled: false, version: '1.0.0', securityScan: { state: 'verified', verified: true, totalFindings: 0, threatFamilyCount: 0 } },
+        { name: 'Risky Mod', fileName: 'Risky.dll', path: 'C:/env/Mods/Risky.dll', source: 'thunderstore', managed: true, disabled: false, version: '1.0.0', securityScan: suspiciousScan },
+        { name: 'Unscanned Mod', fileName: 'Unscanned.dll', path: 'C:/env/Mods/Unscanned.dll', source: 'nexusmods', managed: true, disabled: false, version: '1.0.0', securityScan: { state: 'unavailable', verified: false, totalFindings: 0, threatFamilyCount: 0 } },
+      ],
+      modsDirectory: 'C:/env/Mods',
+      count: 3,
+    });
+    apiMocks.getModUpdatesSummary.mockResolvedValue({
+      count: 3,
+      updates: [
+        { modFileName: 'Alpha.dll', currentVersion: '1.0.0', latestVersion: '1.1.0' },
+        { modFileName: 'Risky.dll', currentVersion: '1.0.0', latestVersion: '1.1.0' },
+        { modFileName: 'Unscanned.dll', currentVersion: '1.0.0', latestVersion: '1.1.0' },
+      ],
+    });
+    apiMocks.updateMod.mockResolvedValue({ success: true });
+
+    render(
+      <ModsOverlay
+        isOpen={true}
+        onClose={() => {}}
+        environmentId="env-1"
+        navigationState={{ modsTab: 'updates' }}
+      />
+    );
+
+    const updateAll = await screen.findByRole('button', { name: 'Update All (1)' });
+    expect(screen.getByText('2 need review')).toBeInTheDocument();
+    expect(updateAll.getAttribute('title')).toMatch(/2 updates need a security review/);
+
+    fireEvent.click(updateAll);
+    await waitFor(() => {
+      expect(apiMocks.updateMod).toHaveBeenCalledWith('env-1', 'Alpha.dll', false);
+    });
+    expect(apiMocks.updateMod).toHaveBeenCalledTimes(1);
+
+    // The flagged mod keeps its own Update action, which still goes through the security gate.
+    fireEvent.click(screen.getByRole('button', { name: 'Open details for Risky Mod' }));
+    fireEvent.click(within(getInspector()).getByRole('button', { name: 'Update' }));
+    await waitFor(() => {
+      expect(apiMocks.updateMod).toHaveBeenLastCalledWith('env-1', 'Risky.dll', false);
+    });
+  });
+
+  it('disables Update All when every update needs a security review', async () => {
+    apiMocks.getMods.mockResolvedValue({
+      mods: [
+        { name: 'Risky Mod', fileName: 'Risky.dll', path: 'C:/env/Mods/Risky.dll', source: 'thunderstore', managed: true, disabled: false, version: '1.0.0', securityScan: { state: 'review', verified: false, highestSeverity: 'High', totalFindings: 2, threatFamilyCount: 0 } },
+      ],
+      modsDirectory: 'C:/env/Mods',
+      count: 1,
+    });
+    apiMocks.getModUpdatesSummary.mockResolvedValue({
+      count: 1,
+      updates: [{ modFileName: 'Risky.dll', currentVersion: '1.0.0', latestVersion: '1.1.0' }],
+    });
+
+    render(
+      <ModsOverlay
+        isOpen={true}
+        onClose={() => {}}
+        environmentId="env-1"
+        navigationState={{ modsTab: 'updates' }}
+      />
+    );
+
+    const updateAll = await screen.findByRole('button', { name: 'Update All (0)' });
+    expect(updateAll).toBeDisabled();
+    expect(updateAll.getAttribute('title')).toMatch(/Every available update needs a security review/);
+    expect(screen.getByText('1 needs review')).toBeInTheDocument();
+  });
+
   it('disables a mod from its row switch without changing the selection', async () => {
     apiMocks.getMods.mockResolvedValue({
       mods: [
