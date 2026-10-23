@@ -573,65 +573,8 @@
 }
 
 /* Notice (rendered by the shell when a mod asks for a decision). */
-.mod-integration-notice {
-  position: fixed;
-  right: var(--simm-space-5);
-  bottom: 2.5rem;
-  z-index: 4250;
-  display: grid;
-  gap: var(--simm-space-3);
-  width: min(24rem, calc(100vw - 2rem));
-  padding: var(--simm-space-4);
-  border: 1px solid var(--simm-line-strong);
-  border-radius: var(--simm-radius-lg);
-  background: var(--simm-panel);
-  box-shadow: var(--simm-shadow-popover);
-}
-
-.mod-integration-notice__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--simm-space-3);
-}
-
-.mod-integration-notice__header strong {
-  display: block;
-  color: var(--simm-text);
-  font-size: var(--simm-text-base);
-  font-weight: 600;
-}
 
 /* No eyebrows: the title says what the notice is. */
-.mod-integration-notice__eyebrow {
-  display: none;
-}
-
-.mod-integration-notice__dismiss {
-  flex: none;
-  width: var(--simm-control-h-sm);
-  height: var(--simm-control-h-sm);
-  border-radius: var(--simm-radius);
-}
-
-.mod-integration-notice p {
-  margin: 0;
-  color: var(--simm-text-2);
-  font-size: var(--simm-text-sm);
-  line-height: 1.5;
-}
-
-.mod-integration-notice p strong {
-  color: var(--simm-text);
-  font-weight: 600;
-}
-
-.mod-integration-notice__actions {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: var(--simm-space-2);
-}
 
 /* ------------------------------------------------------------ Version picker rows
  * Shared by the Mods and Mod Library version choosers.

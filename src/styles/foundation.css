@@ -503,19 +503,27 @@ body {
 .ui-tag--ok { border-color: color-mix(in srgb, var(--simm-ok) 50%, transparent); color: var(--simm-ok-text); }
 
 /* Inline meta line: "TylerMods · v2.0.4 · Thunderstore". */
+/* Separators sit in the gap; one that would start a wrapped line is clipped. */
 .ui-meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0 var(--simm-space-2);
+  gap: 0 var(--simm-space-4);
   min-width: 0;
+  overflow: clip;
+  overflow-clip-margin: 3px;
   color: var(--simm-text-2);
   font-size: var(--simm-text-sm);
 }
 
-.ui-meta > * + *::before {
+.ui-meta > * {
+  position: relative;
+}
+
+.ui-meta > :not(.ui-status)::before {
   content: '·';
-  margin-right: var(--simm-space-2);
+  position: absolute;
+  left: calc(var(--simm-space-2) * -1 - 0.15em);
   color: var(--simm-text-3);
 }
 
