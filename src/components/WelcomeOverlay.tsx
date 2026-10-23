@@ -355,7 +355,7 @@ export function WelcomeOverlay({
             <>
               <div className="wizard__intro">
                 <h2>Choose the layout that fits you</h2>
-                <p>Both layouts keep every tool available. You can switch later in Settings.</p>
+                <p>Power User adds separate Steam branch installs to Add Environment. Everything else is the same in both, and you can switch later in Settings.</p>
               </div>
               <RadioGroup
                 className="wizard-options"
