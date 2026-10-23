@@ -722,7 +722,7 @@ button.statusbar-stat-warn:hover {
 
 .app-collection-runtime-dialog__body [data-slot="dialog-description"] {
   margin: 0;
-  color: #c5d4e6;
+  color: var(--simm-text-2);
   line-height: 1.55;
 }
 
@@ -755,15 +755,6 @@ button.statusbar-stat-warn:hover {
   display: grid;
   gap: 0.28rem;
   min-width: 0;
-}
-
-.workspace-page-header__eyebrow {
-  color: var(--workspace-eyebrow-color);
-  font-size: 0.68rem;
-  font-weight: 720;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .workspace-page-header h2 {
