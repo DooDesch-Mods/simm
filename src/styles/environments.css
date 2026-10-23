@@ -129,7 +129,7 @@
 /* Facts. */
 .env-overview__facts {
   grid-template-columns: 9rem minmax(0, 1fr);
-  row-gap: 0;
+  gap: 0;
   font-size: var(--simm-text-base);
 }
 
@@ -142,6 +142,7 @@
 }
 
 .env-overview__facts dt {
+  padding-right: var(--simm-space-4);
   font-size: var(--simm-text-sm);
 }
 

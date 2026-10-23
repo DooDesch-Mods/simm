@@ -58,6 +58,8 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
   const [modPolicyOpen, setModPolicyOpen] = useState(false);
   const [modPolicies, setModPolicies] = useState<TelemetryModPolicyItem[]>([]);
   const [modRuleScopes, setModRuleScopes] = useState<Record<string, 'environment' | 'global'>>({});
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const refreshGenerationRef = useRef(0);
 
   const reportActionError = useCallback((error: unknown, fallback: string) => {
@@ -115,16 +117,17 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
 
   // Escape leaves the workspace, like Settings, Accounts, and Help, unless a
   // dialog, popover, or menu on this page is open and should close first.
+  // Capture phase: runs before the popup closes itself, so an open layer wins.
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return;
-      if (exportPreview || modPolicyOpen || clearConfirmationOpen) return;
-      if (document.querySelector('[data-slot="popover-content"], [data-slot="dropdown-menu-content"]')) return;
+      if (exportPreview || modPolicyOpen || clearConfirmationOpen || preferencesOpen || moreMenuOpen) return;
+      if (document.querySelector('[data-slot="popover-content"], [data-slot="dropdown-menu-content"], [role="dialog"], [role="alertdialog"]')) return;
       onClose();
     };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [clearConfirmationOpen, exportPreview, modPolicyOpen, onClose]);
+    document.addEventListener('keydown', handleEscape, true);
+    return () => document.removeEventListener('keydown', handleEscape, true);
+  }, [clearConfirmationOpen, exportPreview, modPolicyOpen, moreMenuOpen, onClose, preferencesOpen]);
 
   const filteredEvents = useMemo(
     () => events.filter((event) => severity === 'all' || event.severity === severity),
@@ -267,7 +270,7 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
           <span className={`ui-status ${activeCount > 0 ? 'ui-status--ok' : 'ui-status--muted'}`}>
             {activeCount > 0 ? `${activeCount} monitoring` : 'Waiting for game'}
           </span>
-          <Popover>
+          <Popover open={preferencesOpen} onOpenChange={setPreferencesOpen}>
             <PopoverTrigger
               render={<button type="button" data-slot="button" data-variant="outline" data-size="default" disabled={!telemetryAvailable} />}
             >
@@ -309,7 +312,7 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
             </PopoverContent>
           </Popover>
           <SimmButton variant="outline" disabled={busy || !telemetryAvailable || !collectionEnabled} onClick={() => void viewExport()}>View Export</SimmButton>
-          <DropdownMenu>
+          <DropdownMenu open={moreMenuOpen} onOpenChange={setMoreMenuOpen}>
             <DropdownMenuTrigger
               render={<button type="button" data-slot="button" data-variant="ghost" data-size="icon" aria-label="More telemetry actions" />}
             >

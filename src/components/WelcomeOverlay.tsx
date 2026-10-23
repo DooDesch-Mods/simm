@@ -183,13 +183,6 @@ export function WelcomeOverlay({
 
   const currentStepIndex = setupSteps.indexOf(step);
   const canOpenSimmFolder = Boolean(homePath);
-  const nextActionLabel =
-    finishAction === 'addGame'
-      ? 'Open Add Game'
-      : finishAction === 'accounts'
-        ? 'Open Accounts'
-        : 'Go to Home';
-
   const chooseExperienceMode = (selectedMode: ExperienceMode) => {
     setExperienceMode(selectedMode);
     if (selectedMode === 'powerUser' && finishAction === 'none') {

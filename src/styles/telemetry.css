@@ -240,6 +240,10 @@
   background: var(--simm-on-accent);
 }
 
+.telemetry-menu.telemetry-menu {
+  min-width: 15rem;
+}
+
 /* Export preview dialog */
 .telemetry-export-viewer {
   --simm-dialog-width: 40rem;
