@@ -109,8 +109,17 @@ async function stopApp() {
 async function settle(page, ms = 700) {
   await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => {});
   await page.waitForTimeout(ms);
-  await page.locator('.workspace-panel-fallback, [aria-label^="Loading"]').first()
-    .waitFor({ state: 'detached', timeout: 8000 }).catch(() => {});
+  // Real data can take a while (save inspection, library scans): wait until no
+  // loading placeholder is left on screen, in either UI generation.
+  await page.locator([
+    '.workspace-panel-fallback',
+    '[aria-label^="Loading"]',
+    '[aria-label^="Inspecting"]',
+    '[aria-busy="true"]',
+    '[data-slot="skeleton"]',
+    '[class*="skeleton"]',
+  ].join(', ')).first().waitFor({ state: 'detached', timeout: 45000 }).catch(() => {});
+  await page.waitForTimeout(200);
 }
 
 async function click(locator, timeout = 8000) {
