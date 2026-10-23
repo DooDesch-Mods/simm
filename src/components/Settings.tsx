@@ -251,13 +251,13 @@ function getReadinessStatusLabel(status: LinuxReadinessCheckStatus): string {
     case "ready":
       return "Ready";
     case "warning":
-      return "Needs Review";
+      return "Needs review";
     case "missing":
       return "Missing";
     case "unknown":
       return "Unknown";
     case "notApplicable":
-      return "Not Applicable";
+      return "Not applicable";
     default:
       return status;
   }

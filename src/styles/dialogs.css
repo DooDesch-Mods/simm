@@ -24,6 +24,7 @@
   justify-content: center;
   z-index: 10000;
   background: var(--simm-scrim);
+  backdrop-filter: none;
   overflow: hidden;
   isolation: isolate;
   box-sizing: border-box;

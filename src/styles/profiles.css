@@ -282,6 +282,8 @@
 
 .profiles-items {
   table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .profiles-items__col-type { width: 6.5rem; }
