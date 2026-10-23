@@ -318,7 +318,13 @@ function getSecurityException(summary?: SecurityScanSummary): ModException | nul
   if (!classification && summary.state === 'review') {
     return { label: summary.highestSeverity ? `${sentenceCase(summary.highestSeverity)} risk` : 'Needs review', tone: 'warn' };
   }
+  if (!classification && summary.state === 'unavailable') return { label: 'Scan unavailable', tone: 'neutral' };
   return null;
+}
+
+/** Scan results that need a person's decision keep a mod out of bulk updates. */
+function isBulkUpdateFlagged(mod: { securityScan?: SecurityScanSummary }): boolean {
+  return Boolean(getSecurityBadgeConfig(mod.securityScan)?.exception);
 }
 
 function ExceptionTag({ exception }: { exception: ModException | null }) {
@@ -1565,7 +1571,9 @@ export function ModsOverlay({
     }
   };
   const handleUpdateAll = async () => {
-    const targets = mods.filter((mod) => !getUpdateDisabledReason(mod, modUpdates.get(mod.fileName)?.updateAvailable));
+    const targets = mods.filter((mod) => (
+      !getUpdateDisabledReason(mod, modUpdates.get(mod.fileName)?.updateAvailable) && !isBulkUpdateFlagged(mod)
+    ));
     if (targets.length === 0) return;
     setUpdatingAll(true);
     try {
@@ -2471,11 +2479,16 @@ export function ModsOverlay({
     await prepareLocalOwnershipStep(mod, preview, resolvedVersion);
   }, [localModRequiresLinkConfirmation, prepareLocalOwnershipStep, requestLocalSourcePreview]);
 
-  const totalUpdatesAvailable = mods.filter((mod) => {
-    const updateInfo = modUpdates.get(mod.fileName);
-    const canAutoUpdate = mod.source === 'thunderstore' || mod.source === 'nexusmods' || mod.source === 'github';
-    return !!updateInfo?.updateAvailable && canAutoUpdate;
-  }).length;
+  // Mods with an exception scan result (potentially malicious, known threat, needs review, not
+  // scannable) are left out of "Update All"; their own Update action goes through the security gate.
+  const updatableMods = mods.filter((mod) => !getUpdateDisabledReason(mod, modUpdates.get(mod.fileName)?.updateAvailable));
+  const flaggedUpdateCount = updatableMods.filter(isBulkUpdateFlagged).length;
+  const totalUpdatesAvailable = updatableMods.length - flaggedUpdateCount;
+  const updateAllTitle = flaggedUpdateCount === 0
+    ? undefined
+    : totalUpdatesAvailable === 0
+      ? `Every available update needs a security review. Update ${flaggedUpdateCount === 1 ? 'it' : 'them'} one at a time from the mod's own Update action.`
+      : `${flaggedUpdateCount} ${flaggedUpdateCount === 1 ? 'update needs' : 'updates need'} a security review and ${flaggedUpdateCount === 1 ? 'is' : 'are'} not included. Update ${flaggedUpdateCount === 1 ? 'it' : 'them'} from the mod's own Update action.`;
 
   const filteredMods = useMemo(() => [...mods]
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
@@ -3677,7 +3690,7 @@ export function ModsOverlay({
           >
             <DialogHeader className="modal-header">
               <DialogTitle>Select Mod Runtime</DialogTitle>
-              <SimmButton type="button" variant="ghost" size="icon-sm" className="modal-close" onClick={handleRuntimeSelectionCancel} aria-label="Close runtime selection dialog">×</SimmButton>
+              <SimmButton type="button" variant="ghost" size="icon-sm" className="modal-close" onClick={handleRuntimeSelectionCancel} aria-label="Close runtime selection dialog"><Icon name="times" /></SimmButton>
             </DialogHeader>
             <div className="app-dialog__body">
               <DialogDescription>
@@ -3727,15 +3740,23 @@ export function ModsOverlay({
                   {checkingModUpdates ? 'Checking...' : 'Check Updates'}
                 </SimmButton>
                 {modsTab === 'updates' ? (
-                  <SimmButton
-                    type="button"
-                    variant="default"
-                    onClick={() => void handleUpdateAll()}
-                    disabled={updatingAll || totalUpdatesAvailable === 0}
-                  >
-                    <Icon name={updatingAll ? 'fas fa-spinner fa-spin' : 'arrowUp'} />
-                    {updatingAll ? 'Updating...' : `Update All (${totalUpdatesAvailable})`}
-                  </SimmButton>
+                  <>
+                    {flaggedUpdateCount > 0 && (
+                      <span className="env-assets__note" title={updateAllTitle}>
+                        {flaggedUpdateCount} {flaggedUpdateCount === 1 ? 'needs' : 'need'} review
+                      </span>
+                    )}
+                    <SimmButton
+                      type="button"
+                      variant="default"
+                      onClick={() => void handleUpdateAll()}
+                      disabled={updatingAll || totalUpdatesAvailable === 0}
+                      title={updateAllTitle}
+                    >
+                      <Icon name={updatingAll ? 'fas fa-spinner fa-spin' : 'arrowUp'} />
+                      {updatingAll ? 'Updating...' : `Update All (${totalUpdatesAvailable})`}
+                    </SimmButton>
+                  </>
                 ) : (
                   <SimmButton
                     type="button"

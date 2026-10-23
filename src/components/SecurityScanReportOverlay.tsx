@@ -277,7 +277,7 @@ export function SecurityScanReportView({
             </SimmButton>
           )}
           {showCloseActions && (
-            <SimmButton variant="ghost" size="icon-sm" className="modal-close" aria-label="Close security report" onClick={onClose} disabled={busy}>×</SimmButton>
+            <SimmButton variant="ghost" size="icon-sm" className="modal-close" aria-label="Close security report" onClick={onClose} disabled={busy}><Icon name="times" /></SimmButton>
           )}
         </div>
       </header>

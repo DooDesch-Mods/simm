@@ -7,6 +7,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import type { Environment, ModLibraryEntry } from '../types';
 import { SimmButton, SimmDialogContent } from './primitives';
+import { Icon } from './Icon';
 
 interface Props {
   isOpen: boolean;
@@ -81,7 +82,7 @@ export function InstallTargetsDialog({
       >
         <DialogHeader className="modal-header">
           <DialogTitle>{title}</DialogTitle>
-          <SimmButton variant="ghost" size="icon-sm" className="modal-close" onClick={onClose} disabled={installing} aria-label="Close install target dialog">×</SimmButton>
+          <SimmButton variant="ghost" size="icon-sm" className="modal-close" onClick={onClose} disabled={installing} aria-label="Close install target dialog"><Icon name="times" /></SimmButton>
         </DialogHeader>
         <div className="app-dialog__body lib-install-dialog__body">
           {entries.length > 1 && (

@@ -1873,9 +1873,11 @@ export function EnvironmentList({
     }
   };
 
+  // Share Profile, Verify Game Files, Mod Integration and Refresh Game Version
+  // live in the visible Tools row of the Overview; the menu keeps only the
+  // object-level actions so the two never duplicate each other.
   const buildEnvironmentMenuItems = (env: Environment): AnchoredContextMenuItem[] => {
     const isSteam = isSteamEnvironment(env);
-    const isCompleted = env.status === 'completed';
 
     return [
       {
@@ -1898,41 +1900,6 @@ export function EnvironmentList({
         onSelect: () => {
           void handleOpenFolder(env);
         },
-      },
-      {
-        key: 'share-profile',
-        label: 'Share Profile',
-        icon: 'fas fa-upload',
-        disabled: !isCompleted,
-        onSelect: () => {
-          void handleShareProfile(env);
-        },
-      },
-      ...(isCompleted
-        ? [{
-            key: 'refresh-version',
-            label: 'Refresh Game Version',
-            icon: 'fas fa-sync-alt',
-            separatorBefore: true,
-            onSelect: () => {
-              void handleRefreshGameVersion(env);
-            },
-          }]
-        : []),
-      {
-        key: 'verify-files',
-        label: 'Verify Game Files',
-        icon: 'fas fa-shield-alt',
-        separatorBefore: !isCompleted,
-        disabled: !['completed', 'error'].includes(env.status) || Boolean(activeGameDownloadId),
-        onSelect: () => handleVerifyRequest(env),
-      },
-      {
-        key: 'mod-integration',
-        label: 'Mod Integration',
-        icon: 'fas fa-plug',
-        disabled: !isCompleted,
-        onSelect: () => setModIntegrationEnvironmentId(env.id),
       },
       {
         key: 'delete',
