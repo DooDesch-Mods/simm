@@ -192,7 +192,7 @@
 
 .logs-panel__mod-errors i,
 .logs-panel__mod-errors svg {
-  font-size: 0.625rem;
+  font-size: var(--simm-text-2xs);
 }
 
 .logs-panel__mod-count {
