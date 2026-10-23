@@ -3413,7 +3413,7 @@ describe("ModLibraryOverlay", () => {
     renderLibraryOverlay({ libraryTab: "library" });
 
     expect(
-      (await screen.findAllByText("Potentially Malicious")).length,
+      (await screen.findAllByText("Potentially malicious")).length,
     ).toBeGreaterThan(0);
   });
 
