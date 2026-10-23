@@ -21,6 +21,7 @@ import { SimmButton } from './primitives';
 import { useModLibraryStore } from '../stores/modLibraryStore';
 import { ModThumbnail, type ModArtwork } from './media/ModThumbnail';
 import { useLibraryArtwork } from './useLibraryArtwork';
+import { getEffectiveLevel, type EffectiveLevel } from '../utils/logLevel';
 
 const INITIAL_LOG_LINE_LIMIT = 4000;
 const LOG_LINE_CHUNK_SIZE = 4000;
@@ -73,7 +74,6 @@ interface Props {
 type TimePeriod = 'all' | 'last5min' | 'last15min' | 'last1hour' | 'custom';
 type LogLevelFilter = 'ALL' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
 type LogCategoryFilter = 'ALL' | 'melonloader' | 'mod' | 'general';
-type EffectiveLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
 
 type LogsSelectOption<TValue extends string> = {
   value: TValue;
@@ -239,22 +239,6 @@ function areLogFilesEqual(left: LogFile[], right: LogFile[]): boolean {
   }
 
   return true;
-}
-
-function getEffectiveLevel(line: LogLine): EffectiveLevel {
-  const normalizedLevel = line.level?.toUpperCase();
-
-  if (normalizedLevel === 'ERROR' || normalizedLevel === 'FATAL') return 'ERROR';
-  if (normalizedLevel === 'WARN' || normalizedLevel === 'WARNING') return 'WARN';
-  if (normalizedLevel === 'DEBUG' || normalizedLevel === 'TRACE') return 'DEBUG';
-  if (normalizedLevel === 'INFO') return 'INFO';
-
-  const sourceText = line.content.toLowerCase();
-
-  if (/\b(error|fatal|exception|failed|failure)\b/.test(sourceText)) return 'ERROR';
-  if (/\bwarn(ing)?\b/.test(sourceText)) return 'WARN';
-  if (/\bdebug\b|\btrace\b/.test(sourceText)) return 'DEBUG';
-  return 'INFO';
 }
 
 function getLevelLabel(level: EffectiveLevel): string {
