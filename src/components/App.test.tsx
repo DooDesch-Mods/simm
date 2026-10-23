@@ -544,7 +544,7 @@ describe('App', () => {
     ))).toBeTruthy();
     expect(windowMocks.requestUserAttention).toHaveBeenCalledWith(2);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Review request' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review Request' }));
     expect(await screen.findByText('Reviewing requests for Alternate Beta')).toBeTruthy();
   });
 
