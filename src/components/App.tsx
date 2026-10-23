@@ -2762,7 +2762,6 @@ function AppContent() {
           >
             <header className="mod-integration-notice__header">
               <div>
-                <span className="mod-integration-notice__eyebrow">Your decision is needed</span>
                 <strong id="mod-integration-notice-title">
                   {modIntegrationNotice.operation === 'requestManagement'
                     ? 'Mod management request'
@@ -2811,7 +2810,7 @@ function AppContent() {
                 onClick={() => setModIntegrationReviewEnvironmentId(modIntegrationNotice.environmentId)}
                 disabled={!environment}
               >
-                Review request
+                Review Request
               </SimmButton>
             </div>
           </section>
@@ -2992,7 +2991,7 @@ function AppContent() {
           </div>
           <DialogFooter className="app-dialog__footer">
             <div className="app-dialog__actions">
-              <SimmButton className="btn btn-secondary" onClick={() => void resolveClosePrompt('quit')}>Quit SIMM</SimmButton>
+              <SimmButton variant="secondary" className="btn btn-secondary" onClick={() => void resolveClosePrompt('quit')}>Quit SIMM</SimmButton>
               <SimmButton className="btn btn-primary" onClick={() => void resolveClosePrompt('tray')} autoFocus>Hide to Tray</SimmButton>
             </div>
           </DialogFooter>
