@@ -59,6 +59,22 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({
 const openMock = vi.mocked(open);
 const saveMock = vi.mocked(save);
 
+function getInspector(): HTMLElement {
+  return document.querySelector('.env-assets__inspector') as HTMLElement;
+}
+
+/** Inspector secondary actions live in the "More" menu. */
+async function chooseInspectorMenuItem(name: string | RegExp) {
+  fireEvent.click(await within(getInspector()).findByRole('button', { name: 'More actions' }));
+  fireEvent.click(await screen.findByRole('menuitem', { name }));
+}
+
+/** Toolbar folder/profile actions live in the toolbar "More" menu. */
+async function chooseToolbarMenuItem(name: string | RegExp) {
+  fireEvent.click(await screen.findByRole('button', { name: 'More mod actions' }));
+  fireEvent.click(await screen.findByRole('menuitem', { name }));
+}
+
 const baseEnvironment: Environment = {
   id: 'env-1',
   name: 'Test Env',
@@ -379,7 +395,7 @@ describe('ModsOverlay', () => {
       />
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Security Report' }));
+    await chooseInspectorMenuItem('Security Report');
 
     expect(await screen.findByText('Security Report - Trusted Mod')).toBeTruthy();
   });
@@ -434,7 +450,7 @@ describe('ModsOverlay', () => {
       />
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Security Report' }));
+    await chooseInspectorMenuItem('Security Report');
 
     await waitFor(() => {
       expect(onOpenSecurityReport).toHaveBeenCalledWith(
@@ -469,8 +485,8 @@ describe('ModsOverlay', () => {
       />
     );
 
-    fireEvent.click(await screen.findByText('UnityExplorer.ML.Mono'));
-    fireEvent.click(await screen.findByRole('button', { name: 'Scan Security' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Open details for UnityExplorer.ML.Mono' }));
+    await chooseInspectorMenuItem('Scan Security');
 
     await waitFor(() => {
       expect(apiMocks.scanInstalledModForSecurity).toHaveBeenCalledWith(
@@ -523,7 +539,8 @@ describe('ModsOverlay', () => {
       />
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Scan Local Mods' }));
+    await screen.findByRole('button', { name: 'Open details for Local One' });
+    await chooseToolbarMenuItem('Scan Local Mods');
 
     await waitFor(() => {
       expect(apiMocks.scanInstalledModForSecurity).toHaveBeenCalledTimes(2);
@@ -786,7 +803,7 @@ describe('ModsOverlay', () => {
     );
 
     fireEvent.click(await screen.findByRole('button', { name: 'Open details for Nexus Update Mod' }));
-    const inspector = document.querySelector('.workspace-collection__inspector') as HTMLElement;
+    const inspector = getInspector();
     fireEvent.click(within(inspector).getByRole('button', { name: 'Update' }));
 
     await waitFor(() => {
@@ -845,7 +862,7 @@ describe('ModsOverlay', () => {
     render(<ModsOverlay isOpen={true} onClose={() => {}} environmentId="env-1" />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Open details for Security Update Mod' }));
-    const inspector = document.querySelector('.workspace-collection__inspector') as HTMLElement;
+    const inspector = getInspector();
     fireEvent.click(within(inspector).getByRole('button', { name: 'Update' }));
 
     expect(await screen.findByText('Security Findings - Security Update Mod')).toBeTruthy();
@@ -866,9 +883,9 @@ describe('ModsOverlay', () => {
       />
     );
 
-    await screen.findByRole('button', { name: 'Installed' });
+    await screen.findByRole('button', { name: /^Installed/ });
 
-    expect(document.querySelector('.workspace-collection-shell')).not.toBeNull();
+    expect(document.querySelector('.env-assets')).not.toBeNull();
     expect(document.querySelector('.mods-env-layout--grid')).toBeNull();
   });
 
@@ -920,15 +937,15 @@ describe('ModsOverlay', () => {
       />,
     );
 
-    expect(await screen.findByRole('heading', { name: 'Link Mod Source' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Link mod source' })).toBeTruthy();
     await waitFor(() => {
       expect(apiMocks.searchNexusMods).toHaveBeenCalledWith('schedule1', 'PackRat');
       expect(apiMocks.searchThunderstoreByRuntime).toHaveBeenCalledWith('schedule-i', 'PackRat');
     });
-    expect(document.querySelector('.workspace-inspector-link-panel__summary strong')?.textContent).toBe('PackRat');
-    expect(document.querySelector('.workspace-inspector-link-panel__summary span')?.textContent).toBe('PackRat-IL2CPP.dll');
+    expect(document.querySelector('.mods-tab-link__subject strong')?.textContent).toBe('PackRat');
+    expect(document.querySelector('.mods-tab-link__subject span')?.textContent).toBe('PackRat-IL2CPP.dll');
     expect(await screen.findByText('Pack Rat')).toBeTruthy();
-    expect(screen.getByText('NexusMods')).toBeTruthy();
+    expect(screen.getByText('Nexus Mods')).toBeTruthy();
     expect(screen.getByText('Name + author match')).toBeTruthy();
     expect(screen.getByText('Installed version found')).toBeTruthy();
   });
@@ -1098,9 +1115,10 @@ describe('ModsOverlay', () => {
     await waitFor(() => {
       expect(screen.queryByText('Select an installed mod to review details and actions.')).toBeNull();
     });
-    const inspector = document.querySelector('.workspace-collection__inspector') as HTMLElement;
+    const inspector = getInspector();
     expect(within(inspector).getByRole('button', { name: 'Uninstall' })).toBeTruthy();
-    expect(within(inspector).getByRole('button', { name: 'Open Folder' })).toBeTruthy();
+    fireEvent.click(within(inspector).getByRole('button', { name: 'More actions' }));
+    expect(await screen.findByRole('menuitem', { name: /Open Folder/ })).toBeTruthy();
   });
 
   it('shows installed version as latest for managed remote mods without cached updates', async () => {
@@ -1132,7 +1150,7 @@ describe('ModsOverlay', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Open details for Current Mod' }));
 
-    const inspector = document.querySelector('.workspace-collection__inspector') as HTMLElement;
+    const inspector = getInspector();
     await waitFor(() => {
       expect(within(inspector).getByText('Latest').nextElementSibling?.textContent).toBe('3.3.0');
     });
@@ -1165,8 +1183,7 @@ describe('ModsOverlay', () => {
     );
 
     fireEvent.click(await screen.findByRole('button', { name: 'Open details for Source Linked Mod' }));
-    const inspector = document.querySelector('.workspace-collection__inspector') as HTMLElement;
-    fireEvent.click(within(inspector).getByRole('button', { name: 'Open Source Page' }));
+    await chooseInspectorMenuItem(/Open Source Page/);
 
     expect(apiMocks.openExternalUrl).toHaveBeenCalledWith('https://www.nexusmods.com/schedule1/mods/123');
   });
@@ -1180,7 +1197,7 @@ describe('ModsOverlay', () => {
       />
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Share Profile' }));
+    await chooseToolbarMenuItem(/Share Profile/);
 
     await waitFor(() => {
       expect(apiMocks.exportEnvironmentProfile).toHaveBeenCalledWith('env-1');
@@ -1203,6 +1220,73 @@ describe('ModsOverlay', () => {
         'C:\\Profiles\\test-env.json',
       );
     });
+  });
+
+  it('updates every auto-updatable mod from the Updates view', async () => {
+    apiMocks.getMods.mockResolvedValue({
+      mods: [
+        { name: 'Alpha Mod', fileName: 'Alpha.dll', path: 'C:/env/Mods/Alpha.dll', source: 'thunderstore', managed: true, disabled: false, version: '1.0.0' },
+        { name: 'Bravo Mod', fileName: 'Bravo.dll', path: 'C:/env/Mods/Bravo.dll', source: 'nexusmods', managed: true, disabled: false, version: '2.0.0' },
+        { name: 'Local Mod', fileName: 'Local.dll', path: 'C:/env/Mods/Local.dll', source: 'local', managed: false, disabled: false, version: '0.1.0' },
+      ],
+      modsDirectory: 'C:/env/Mods',
+      count: 3,
+    });
+    apiMocks.getModUpdatesSummary.mockResolvedValue({
+      count: 3,
+      updates: [
+        { modFileName: 'Alpha.dll', currentVersion: '1.0.0', latestVersion: '1.1.0' },
+        { modFileName: 'Bravo.dll', currentVersion: '2.0.0', latestVersion: '2.1.0' },
+        { modFileName: 'Local.dll', currentVersion: '0.1.0', latestVersion: '0.2.0' },
+      ],
+    });
+    apiMocks.updateMod.mockResolvedValue({ success: true });
+
+    render(
+      <ModsOverlay
+        isOpen={true}
+        onClose={() => {}}
+        environmentId="env-1"
+        navigationState={{ modsTab: 'updates' }}
+      />
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Update All (2)' }));
+
+    await waitFor(() => {
+      expect(apiMocks.updateMod).toHaveBeenCalledTimes(2);
+      expect(apiMocks.updateMod).toHaveBeenCalledWith('env-1', 'Alpha.dll', false);
+      expect(apiMocks.updateMod).toHaveBeenCalledWith('env-1', 'Bravo.dll', false);
+    });
+  });
+
+  it('disables a mod from its row switch without changing the selection', async () => {
+    apiMocks.getMods.mockResolvedValue({
+      mods: [
+        { name: 'Alpha Mod', fileName: 'Alpha.dll', path: 'C:/env/Mods/Alpha.dll', source: 'thunderstore', managed: true, disabled: false },
+        { name: 'Bravo Mod', fileName: 'Bravo.dll', path: 'C:/env/Mods/Bravo.dll', source: 'thunderstore', managed: true, disabled: false },
+      ],
+      modsDirectory: 'C:/env/Mods',
+      count: 2,
+    });
+
+    render(
+      <ModsOverlay
+        isOpen={true}
+        onClose={() => {}}
+        environmentId="env-1"
+      />
+    );
+
+    const alpha = await screen.findByRole('button', { name: 'Open details for Alpha Mod' });
+    await waitFor(() => expect(alpha.getAttribute('aria-pressed')).toBe('true'));
+    fireEvent.click(screen.getByRole('switch', { name: 'Bravo Mod enabled' }));
+
+    await waitFor(() => {
+      expect(apiMocks.disableMod).toHaveBeenCalledWith('env-1', 'Bravo.dll');
+    });
+    expect(alpha.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Open details for Bravo Mod' }).getAttribute('aria-pressed')).toBe('false');
   });
 
   it('opens installed mod details via keyboard activation', async () => {
@@ -1238,9 +1322,10 @@ describe('ModsOverlay', () => {
     await waitFor(() => {
       expect(screen.queryByText('Select an installed mod to review details and actions.')).toBeNull();
     });
-    const inspector = document.querySelector('.workspace-collection__inspector') as HTMLElement;
-    expect(within(inspector).getByRole('button', { name: 'Open in Mod Library' })).toBeTruthy();
+    const inspector = getInspector();
     expect(within(inspector).getByRole('button', { name: 'Uninstall' })).toBeTruthy();
+    fireEvent.click(within(inspector).getByRole('button', { name: 'More actions' }));
+    expect(await screen.findByRole('menuitem', { name: /Show in Mod Library/ })).toBeTruthy();
   });
 });
 

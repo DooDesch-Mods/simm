@@ -132,6 +132,36 @@ describe('UserLibsOverlay', () => {
     });
   });
 
+  it('toggles user library state from the row switch', async () => {
+    render(
+      <UserLibsOverlay
+        isOpen={true}
+        onClose={() => {}}
+        environmentId="env-1"
+      />
+    );
+
+    fireEvent.click(await screen.findByRole('switch', { name: 'HarmonyX enabled' }));
+
+    await waitFor(() => {
+      expect(apiMocks.disableUserLib).toHaveBeenCalledWith('env-1', 'C:/env/UserLibs/HarmonyX.dll');
+    });
+  });
+
+  it('teaches what UserLibs are when the environment has none', async () => {
+    apiMocks.getUserLibs.mockResolvedValue({ userLibs: [], userLibsDirectory: 'C:/env/UserLibs', count: 0 });
+    render(
+      <UserLibsOverlay
+        isOpen={true}
+        onClose={() => {}}
+        environmentId="env-1"
+      />
+    );
+
+    expect(await screen.findByText('No UserLibs in this environment')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add UserLib File' })).toBeTruthy();
+  });
+
   it('uploads UserLib and notifies parent on success', async () => {
     const onUserLibsChanged = vi.fn();
     openMock.mockResolvedValueOnce('C:/userlibs/NewSharedLib.dll');
