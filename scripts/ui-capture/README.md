@@ -17,7 +17,7 @@ instance with a local DevTools port (`src-tauri/tauri.playwright.conf.json`).
 
 ```powershell
 # After: the redesign branch
-git checkout redesign/impeccable
+git checkout feature/redesign
 bun install
 node scripts/ui-capture/capture.mjs --label after
 

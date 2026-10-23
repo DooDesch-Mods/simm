@@ -1,7 +1,5 @@
 # Product
 
-<!-- impeccable:product-schema 1 -->
-
 > Facts marked *(inferred)* come from the repository (README, docs/simm-desktop-ui-redesign-spec.md, code) and were not yet confirmed by the maintainers.
 
 ## Platform
