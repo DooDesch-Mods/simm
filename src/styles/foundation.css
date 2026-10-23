@@ -584,3 +584,201 @@ body {
 
 .ui-muted { color: var(--simm-text-2); }
 .ui-subtle { color: var(--simm-text-3); }
+
+/* ------------------------------------------------------------- Controls
+ * One button and one field vocabulary for the whole app. Legacy `.btn*`
+ * classes and the shadcn Button variants resolve to the same look.
+ */
+
+.btn:not(.h-auto),
+[data-slot='button']:not(.h-auto) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: var(--simm-control-h);
+  min-height: var(--simm-control-h);
+  padding: 0 var(--simm-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--simm-radius);
+  box-shadow: none;
+  font-family: inherit;
+  font-size: var(--simm-text-sm);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--simm-fast) var(--simm-ease), border-color var(--simm-fast) var(--simm-ease), color var(--simm-fast) var(--simm-ease);
+}
+
+.btn:active:not(:disabled),
+[data-slot='button']:active:not(:disabled) {
+  transform: none;
+}
+
+/* Primary: the one action this surface exists for. */
+.btn-primary,
+[data-slot='button'][data-variant='default'] {
+  background: var(--simm-accent-fill);
+  border-color: transparent;
+  color: var(--simm-on-accent);
+}
+
+.btn-primary:hover:not(:disabled),
+[data-slot='button'][data-variant='default']:hover:not(:disabled) {
+  background: var(--simm-accent-fill-hover);
+}
+
+/* Secondary: neutral filled. */
+.btn-secondary,
+[data-slot='button'][data-variant='secondary'] {
+  background: var(--simm-raised-hover);
+  border-color: var(--simm-line-strong);
+  color: var(--simm-text);
+}
+
+.btn-secondary:hover:not(:disabled),
+[data-slot='button'][data-variant='secondary']:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--simm-raised-hover) 88%, var(--simm-text));
+}
+
+/* Outline: secondary weight on busy surfaces. */
+[data-slot='button'][data-variant='outline'] {
+  background: transparent;
+  border-color: var(--simm-line-strong);
+  color: var(--simm-text);
+}
+
+[data-slot='button'][data-variant='outline']:hover:not(:disabled) {
+  background: var(--simm-hover);
+}
+
+/* Ghost: tertiary actions, toolbars, icon buttons. */
+[data-slot='button'][data-variant='ghost'] {
+  background: transparent;
+  border-color: transparent;
+  color: var(--simm-text-2);
+}
+
+[data-slot='button'][data-variant='ghost']:hover:not(:disabled),
+[data-slot='button'][data-variant='ghost'][aria-expanded='true'] {
+  background: var(--simm-hover);
+  color: var(--simm-text);
+}
+
+/* Destructive: quiet until it is the decision (see .ui-btn-danger-solid). */
+.btn-danger,
+[data-slot='button'][data-variant='destructive'] {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--simm-danger) 45%, transparent);
+  color: var(--simm-danger-text);
+}
+
+.btn-danger:hover:not(:disabled),
+[data-slot='button'][data-variant='destructive']:hover:not(:disabled) {
+  background: var(--simm-danger-soft);
+}
+
+/* Solid red only inside the confirmation that performs the destruction. */
+.ui-btn-danger-solid.ui-btn-danger-solid {
+  background: color-mix(in oklab, var(--simm-danger) 78%, black);
+  border-color: transparent;
+  color: #fff;
+}
+
+.ui-btn-danger-solid.ui-btn-danger-solid:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--simm-danger) 88%, black);
+}
+
+[data-slot='button'][data-variant='link'] {
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--simm-accent-text);
+}
+
+.btn-small,
+[data-slot='button'][data-size='sm'],
+[data-slot='button'][data-size='xs'] {
+  height: var(--simm-control-h-sm);
+  min-height: var(--simm-control-h-sm);
+  padding: 0 var(--simm-space-2);
+  font-size: var(--simm-text-xs);
+}
+
+[data-slot='button'][data-size='lg'] {
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 var(--simm-space-4);
+  font-size: var(--simm-text-base);
+}
+
+[data-slot='button'][data-size^='icon'] {
+  width: var(--simm-control-h);
+  padding: 0;
+}
+
+[data-slot='button'][data-size='icon-sm'],
+[data-slot='button'][data-size='icon-xs'] {
+  width: var(--simm-control-h-sm);
+  height: var(--simm-control-h-sm);
+  min-height: var(--simm-control-h-sm);
+}
+
+.btn:disabled,
+[data-slot='button']:disabled,
+[data-slot='button'][aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Fields */
+:where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea),
+[data-slot='input'],
+[data-slot='select-trigger'],
+[data-slot='textarea'] {
+  min-height: var(--simm-control-h);
+  border: 1px solid var(--simm-line-input);
+  border-radius: var(--simm-radius);
+  background: var(--simm-sunken);
+  color: var(--simm-text);
+  font-family: inherit;
+  font-size: var(--simm-text-sm);
+  box-shadow: none;
+}
+
+:where(input, textarea)::placeholder {
+  color: var(--simm-text-3);
+  opacity: 1;
+}
+
+:where(input:not([type='checkbox']):not([type='radio']), select, textarea):focus-visible,
+[data-slot='input']:focus-visible,
+[data-slot='select-trigger']:focus-visible,
+[data-slot='textarea']:focus-visible {
+  border-color: var(--simm-accent);
+  box-shadow: 0 0 0 3px var(--simm-accent-soft);
+  outline: none;
+}
+
+[data-slot='select-content'],
+[data-slot='dropdown-menu-content'],
+[data-slot='popover-content'],
+[data-slot='context-menu-content'] {
+  border: 1px solid var(--simm-line-strong);
+  border-radius: var(--simm-radius-lg);
+  background: var(--simm-panel);
+  color: var(--simm-text);
+  box-shadow: var(--simm-shadow-popover);
+}
+
+[data-slot='switch'][data-checked],
+[data-slot='switch'][aria-checked='true'] {
+  background: var(--simm-accent-fill);
+}
+
+[data-slot='switch']:not([data-checked]):not([aria-checked='true']) {
+  background: var(--simm-raised-hover);
+  box-shadow: inset 0 0 0 1px var(--simm-line-strong);
+}
