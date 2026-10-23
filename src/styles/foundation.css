@@ -109,7 +109,7 @@
   --popover-foreground: var(--simm-text);
   --primary: var(--simm-accent-fill);
   --primary-foreground: var(--simm-on-accent);
-  --secondary: var(--simm-raised);
+  --secondary: var(--simm-raised-hover);
   --secondary-foreground: var(--simm-text);
   --muted: var(--simm-sunken);
   --muted-foreground: var(--simm-text-2);

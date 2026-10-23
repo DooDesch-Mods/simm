@@ -302,6 +302,8 @@ interface EnvironmentListProps {
   focusedEnvironmentRequestId?: number;
   onOpenWorkspace?: (workspace: Exclude<WorkspaceRoute, { view: 'home' }>) => void;
   onSelectEnvironment?: (environmentId: string) => void;
+  /** Render only this environment (the environment workspace's Overview tab). */
+  onlyEnvironmentId?: string | null;
 }
 
 export type WorkspaceRoute =
@@ -330,7 +332,8 @@ export function EnvironmentList({
   focusedEnvironmentId,
   focusedEnvironmentRequestId = 0,
   onOpenWorkspace,
-  onSelectEnvironment
+  onSelectEnvironment,
+  onlyEnvironmentId = null,
 }: EnvironmentListProps) {
   const { environments, loading, error, progress, activeGameDownloadId, startDownload, verifyEnvironmentFiles, cancelDownload, deleteEnvironment, checkUpdate, updateEnvironment, refreshGameVersion, ensureEnvironments } = useEnvironmentStore();
   const { attempts: launchAttempts, requestLaunch } = useGameLaunchStore();
@@ -2798,7 +2801,9 @@ export function EnvironmentList({
       })()}
 
       <div className="environments-grid">
-        {sortEnvironmentsForDisplay(environments).map(renderEnvironmentCard)}
+        {sortEnvironmentsForDisplay(environments)
+          .filter((env) => !onlyEnvironmentId || env.id === onlyEnvironmentId)
+          .map(renderEnvironmentCard)}
       </div>
 
       {environmentMenu && (() => {
