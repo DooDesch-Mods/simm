@@ -115,6 +115,7 @@ async function settle(page, ms = 700) {
     '.workspace-panel-fallback',
     '[aria-label^="Loading"]',
     '[aria-label^="Inspecting"]',
+    '[role="status"]:has-text("Inspecting")',
     '[aria-busy="true"]',
     '[data-slot="skeleton"]',
     '[class*="skeleton"]',
