@@ -22,7 +22,7 @@
 }
 
 .lib-tabs .ui-tabs-line__tab svg {
-  font-size: 0.85rem;
+  font-size: var(--simm-text-sm);
   color: var(--simm-text-3);
 }
 
