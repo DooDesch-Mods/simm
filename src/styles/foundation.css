@@ -32,7 +32,7 @@
   /* Text */
   --simm-text: var(--app-text-color, #edf4ff);
   --simm-text-2: var(--text-secondary, #9aabc6);
-  --simm-text-3: var(--text-tertiary, #75859d);
+  --simm-text-3: var(--text-tertiary, #8696ae);
 
   /* Accent: fills are deepened so white labels pass 4.5:1 on every theme. */
   --simm-accent: var(--primary-btn-color, #4e8ad9);
