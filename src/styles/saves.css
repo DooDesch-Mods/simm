@@ -262,9 +262,9 @@
   padding: 0 var(--simm-space-2);
 }
 
-@container (max-width: 52rem) {
+@container (max-width: 70rem) {
   .save-backups-workspace__layout {
-    grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr);
+    grid-template-columns: 18rem minmax(0, 1fr);
   }
 
   .save-backups-workspace__detail-header {

@@ -1446,6 +1446,38 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
           <h2 className="profiles-detail__title">New profile</h2>
           <p className="profiles-detail__hint">Start from what is installed in an environment, then keep only the items you want.</p>
         </div>
+        <div className="profiles-detail__actions">
+          <SimmButton
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setFlow(null);
+              setCreateDraftManifest(null);
+              setCreateSelectedItemKeys(new Set());
+            }}
+            disabled={busy}
+          >
+            Cancel
+          </SimmButton>
+          <SimmButton
+            type="button"
+            variant="secondary"
+            onClick={() => void runAction('captureNew', captureNewProfile)}
+            disabled={!createEnvironmentId || !createProfileName.trim() || busy}
+            title="Capture every item in the environment, including disabled ones"
+          >
+            {busyAction === 'captureNew' && <Icon name="spinner" spin />}
+            Capture Full Snapshot
+          </SimmButton>
+          <SimmButton
+            type="button"
+            onClick={() => void runAction('createSelected', createSelectedProfile)}
+            disabled={!createDraftManifest || createSelectedCount === 0 || !createProfileName.trim() || busy}
+          >
+            {busyAction === 'createSelected' && <Icon name="spinner" spin />}
+            Create Profile
+          </SimmButton>
+        </div>
       </header>
 
       <div className="profiles-form">
@@ -1463,7 +1495,9 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
             <option value="">Choose environment</option>
             {environments.map((environment) => (
               <option key={environment.id} value={environment.id}>
-                {environment.name} ({runtimeLabel(environment.runtime)})
+                {environment.name.toLowerCase().includes(runtimeLabel(environment.runtime).toLowerCase())
+                  ? environment.name
+                  : `${environment.name} (${runtimeLabel(environment.runtime)})`}
               </option>
             ))}
           </select>
@@ -1544,38 +1578,6 @@ export function ProfilesWorkspace({ preferredEnvironmentId, initialProfileId }: 
         )}
       </div>
 
-      <footer className="profiles-flow__footer">
-        <SimmButton
-          type="button"
-          variant="ghost"
-          onClick={() => {
-            setFlow(null);
-            setCreateDraftManifest(null);
-            setCreateSelectedItemKeys(new Set());
-          }}
-          disabled={busy}
-        >
-          Cancel
-        </SimmButton>
-        <SimmButton
-          type="button"
-          variant="secondary"
-          onClick={() => void runAction('captureNew', captureNewProfile)}
-          disabled={!createEnvironmentId || !createProfileName.trim() || busy}
-          title="Capture every item in the environment, including disabled ones"
-        >
-          {busyAction === 'captureNew' && <Icon name="spinner" spin />}
-          Capture Full Snapshot
-        </SimmButton>
-        <SimmButton
-          type="button"
-          onClick={() => void runAction('createSelected', createSelectedProfile)}
-          disabled={!createDraftManifest || createSelectedCount === 0 || !createProfileName.trim() || busy}
-        >
-          {busyAction === 'createSelected' && <Icon name="spinner" spin />}
-          Create Profile
-        </SimmButton>
-      </footer>
     </section>
   );
 
