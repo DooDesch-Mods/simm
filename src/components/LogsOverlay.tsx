@@ -205,7 +205,7 @@ function LogsToolbarSelect<TValue extends string>({
           }
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className="logs-panel__select-content" align="start">
+      <SelectContent align="start">
         <SelectGroup>
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
