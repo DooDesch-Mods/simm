@@ -248,6 +248,10 @@ export function SteamAccountOverlay({ isOpen, onClose }: { isOpen: boolean; onCl
                     <strong>{nexusIdentity}</strong>
                     <span>{tierLabel}</span>
                     <span>{capabilityLabel}</span>
+                  </div>
+                )}
+                {nexusStatus.connected && (typeof nexusStatus.account?.memberId === 'number' || nexusExpiry) && (
+                  <div className="ui-meta account-service__meta">
                     {typeof nexusStatus.account?.memberId === 'number' && (
                       <span>Member {nexusStatus.account.memberId}</span>
                     )}

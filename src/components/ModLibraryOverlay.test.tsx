@@ -4306,8 +4306,8 @@ describe("ModLibraryOverlay", () => {
     expect(await screen.findByText("2 compatible environments")).toBeTruthy();
     expect(screen.getByText("Main")).toBeTruthy();
     expect(screen.getByText("Alternate")).toBeTruthy();
-    expect(screen.getByText("IL2CPP • main")).toBeTruthy();
-    expect(screen.getByText("Mono • alternate")).toBeTruthy();
+    expect(screen.getByText("IL2CPP · main")).toBeTruthy();
+    expect(screen.getByText("Mono · alternate")).toBeTruthy();
   });
 
   it("uses the backend Mono runtime for custom-branch library install targets", async () => {

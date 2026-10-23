@@ -2631,7 +2631,6 @@ export function EnvironmentList({
                     onCheckedChange={(checked) => {
                       void handleNightlyMelonLoaderToggle(showMelonLoaderVersionSelector, Boolean(checked));
                     }}
-                    aria-label="Show MelonLoader nightly builds"
                     disabled={loadingMelonLoaderReleases.has(showMelonLoaderVersionSelector)}
                   />
                   Show nightly builds

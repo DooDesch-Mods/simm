@@ -97,7 +97,7 @@ export function ProfileExportDialog({
           </DialogDescription>
           {loading || !manifest ? (
             <div className="profile-export-dialog__loading" role="status">
-              <Icon name="spinner" />
+              <Icon name="spinner" spin />
               Preparing profile...
             </div>
           ) : (
@@ -110,12 +110,12 @@ export function ProfileExportDialog({
                   onChange={(event) => onProfileNameChange(event.target.value)}
                 />
               </div>
-              <div className="profile-export-dialog__summary-grid">
-                <div><span>Selected</span><strong>{counts.selected}</strong></div>
-                <div><span>Mods</span><strong>{counts.mods}</strong></div>
-                <div><span>Plugins</span><strong>{counts.plugins}</strong></div>
-                <div><span>Manual</span><strong>{counts.manual}</strong></div>
-              </div>
+              <p className="profile-export-dialog__summary">
+                {counts.selected} of {manifest.items.length} selected
+                {' · '}{counts.mods} {counts.mods === 1 ? 'mod' : 'mods'}
+                {' · '}{counts.plugins} {counts.plugins === 1 ? 'plugin' : 'plugins'}
+                {counts.manual > 0 ? ` · ${counts.manual} need manual install` : ''}
+              </p>
               <div className="profile-export-dialog__items" role="list" aria-label="Profile items">
                 {manifest.items.map((item, index) => {
                   const key = profileItemKey(item, index);
@@ -129,8 +129,8 @@ export function ProfileExportDialog({
                         <strong>{item.name}</strong>
                         <span>
                           {profileItemTypeLabel(item)}
-                          {item.source ? ` - ${item.source}` : ''}
-                          {item.sourceVersion ? ` - ${item.sourceVersion}` : ''}
+                          {item.source ? ` · ${item.source}` : ''}
+                          {item.sourceVersion ? ` · ${item.sourceVersion}` : ''}
                         </span>
                         {item.manualReason && <em>{item.manualReason}</em>}
                       </span>
@@ -155,7 +155,7 @@ export function ProfileExportDialog({
               onClick={onSave}
               disabled={saveDisabled}
             >
-              <Icon name={saving ? 'spinner' : 'download'} />
+              <Icon name={saving ? 'spinner' : 'download'} spin={saving} />
               Export JSON
             </SimmButton>
           </DialogFooter>
