@@ -113,8 +113,15 @@
 
 /* The selected environment leads: same anatomy, more room. */
 .home-env--primary {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   min-height: 5.5rem;
-  padding: var(--simm-space-4) var(--simm-space-5) var(--simm-space-4) var(--simm-space-3);
+  padding: var(--simm-space-3) var(--simm-space-5) var(--simm-space-3) var(--simm-space-3);
+}
+
+.home-env__art {
+  width: 11.5rem;
+  border-radius: var(--simm-radius);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--simm-text) 8%, transparent);
 }
 
 .home-env--primary .home-env__name {
@@ -210,8 +217,13 @@
 }
 
 @container (max-width: 44rem) {
-  .home-env {
+  .home-env,
+  .home-env--primary {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .home-env__art {
+    display: none;
   }
 
   .home-env__status {
