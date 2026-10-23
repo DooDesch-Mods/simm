@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import type { Environment } from '../types';
 import { AnchoredContextMenu, type AnchoredContextMenuItem } from './AnchoredContextMenu';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { Icon } from './Icon';
+import { ModThumbnail, type ModArtwork, type ModThumbnailSize } from './media/ModThumbnail';
+import { useModArtwork } from './media/useModArtwork';
 import { SimmButton } from './primitives';
 
 interface PluginInfo {
@@ -48,6 +50,26 @@ function getPluginSourceLabel(source?: PluginInfo['source']): string {
   }
 }
 
+/** Library artwork when the file belongs to a known mod, otherwise a neutral type glyph in the same box. */
+function AssetThumbnail({
+  artwork,
+  name,
+  glyph,
+  size,
+}: {
+  artwork: ModArtwork | null;
+  name: string;
+  glyph: string;
+  size: ModThumbnailSize;
+}) {
+  if (artwork) return <ModThumbnail {...artwork} name={name} size={size} />;
+  return (
+    <span className="ui-thumb" style={{ '--ui-thumb-size': `${size}px` } as CSSProperties} aria-hidden="true">
+      <Icon name={glyph} />
+    </span>
+  );
+}
+
 /** True when a click landed on a control inside a row (switch, button), not on the row itself. */
 function isInteractiveTarget(target: EventTarget | null, row: HTMLElement): boolean {
   if (!(target instanceof Element)) return false;
@@ -57,6 +79,9 @@ function isInteractiveTarget(target: EventTarget | null, row: HTMLElement): bool
 
 export function PluginsOverlay({ isOpen, environmentId, onPluginsChanged }: Props) {
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
+  const lookupArtwork = useModArtwork();
+  const pluginArtwork = (plugin: PluginInfo) =>
+    lookupArtwork(plugin.relatedMod) ?? lookupArtwork(plugin.fileName) ?? lookupArtwork(plugin.name);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pluginsDirectory, setPluginsDirectory] = useState('');
@@ -429,6 +454,7 @@ export function PluginsOverlay({ isOpen, environmentId, onPluginsChanged }: Prop
             )}
             {!error && !loading && plugins.length === 0 && (
               <div className="ui-empty env-assets-empty">
+                <span className="ui-empty__emblem" aria-hidden="true"><Icon name="plug" /></span>
                 <h3 className="ui-empty__title">No plugins in this environment</h3>
                 <p className="ui-empty__copy">
                   Plugins are MelonLoader plugins that load before mods, such as MLVScan or runtime fixes.
@@ -443,6 +469,7 @@ export function PluginsOverlay({ isOpen, environmentId, onPluginsChanged }: Prop
             )}
             {!loading && plugins.length > 0 && filteredPlugins.length === 0 && (
               <div className="ui-empty env-assets-empty">
+                <span className="ui-empty__emblem" aria-hidden="true"><Icon name="search" /></span>
                 <h3 className="ui-empty__title">No plugins match</h3>
                 <p className="ui-empty__copy">Nothing in this environment matches &quot;{searchTerm.trim()}&quot;.</p>
                 <div className="env-assets-empty__actions">
@@ -492,7 +519,7 @@ export function PluginsOverlay({ isOpen, environmentId, onPluginsChanged }: Prop
                             aria-pressed={isSelected}
                             onClick={() => setSelectedPluginKey(pluginKey)}
                           >
-                            <span className="env-assets-icon" aria-hidden="true"><Icon name="plug" /></span>
+                            <AssetThumbnail artwork={pluginArtwork(plugin)} name={plugin.name} glyph="plug" size={32} />
                             <span className="env-assets-row__text">
                               <span className="env-assets-row__name">{plugin.name}</span>
                               <span className="env-assets-row__desc">{plugin.fileName}</span>
@@ -528,7 +555,7 @@ export function PluginsOverlay({ isOpen, environmentId, onPluginsChanged }: Prop
           {selectedPlugin && (
             <>
               <div className="env-assets-inspector__head">
-                <span className="env-assets-icon env-assets-icon--lg" aria-hidden="true"><Icon name="plug" /></span>
+                <AssetThumbnail artwork={pluginArtwork(selectedPlugin)} name={selectedPlugin.name} glyph="plug" size={48} />
                 <div className="env-assets-inspector__titles">
                   <h3 className="env-assets-inspector__title">{selectedPlugin.name}</h3>
                   <div className="ui-meta">

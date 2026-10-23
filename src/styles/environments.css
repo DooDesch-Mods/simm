@@ -29,6 +29,7 @@
   /* Full workspace width so the body lines up with the header and its Play
      button; long prose is capped separately below. */
   padding: var(--simm-space-5);
+  container: env-overview / inline-size;
 }
 
 .env-overview--page:focus,
@@ -61,6 +62,41 @@
 }
 
 /* Description + overflow menu. */
+/* Top area: description + details, with the game's own store art on the right. */
+.env-overview__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--simm-space-6);
+  min-width: 0;
+}
+
+.env-overview__top-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--simm-space-6);
+  min-width: 0;
+}
+
+.env-overview__art {
+  width: 16rem;
+  border-radius: var(--simm-radius-lg);
+}
+
+/* Narrow workspaces: the details table needs the width more than the art does. */
+@container env-overview (max-width: 52rem) {
+  .env-overview__art {
+    display: none;
+  }
+}
+
+.env-overview__card-art {
+  flex: none;
+  width: 64px;
+  height: 30px;
+  border-radius: var(--simm-radius-sm);
+}
+
 .env-overview__intro {
   display: flex;
   align-items: flex-start;

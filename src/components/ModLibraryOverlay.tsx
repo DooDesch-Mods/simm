@@ -45,6 +45,8 @@ import {
   type SecurityScanReportOption,
 } from "./SecurityScanReportOverlay";
 import { Icon } from './Icon';
+import { ModThumbnail, type ModArtwork } from "./media/ModThumbnail";
+import { useModArtwork } from "./media/useModArtwork";
 import { type SecurityReportWorkspaceRequest } from "./SecurityScanReportPage";
 import {
   AnchoredContextMenu,
@@ -369,16 +371,21 @@ const DISCOVER_SORT_OPTIONS: Array<{ value: DiscoverSort; label: string }> = [
 ];
 
 function LibraryEmpty({
+  icon,
   title,
   children,
   action,
 }: {
+  icon: string;
   title: string;
   children?: ReactNode;
   action?: ReactNode;
 }) {
   return (
     <div className="ui-empty lib-empty">
+      <span className="ui-empty__emblem" aria-hidden="true">
+        <Icon name={icon} />
+      </span>
       <p className="ui-empty__title">{title}</p>
       {children ? <p className="ui-empty__copy">{children}</p> : null}
       {action}
@@ -435,9 +442,63 @@ function getExceptionTag(
   return null;
 }
 
+/** The item's own banner, full width above the title row; absent (no placeholder) without one. */
+function DetailMedia({ src, alt }: { src?: string; alt: string }) {
+  const source = resolveImageSource(src);
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  if (!source || failedSource === source) return null;
+  return (
+    <figure className="lib-detail__media">
+      <img
+        src={source}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        onError={() => setFailedSource(source)}
+      />
+    </figure>
+  );
+}
+
+/** The icon a featured Thunderstore package publishes, used when the tool is not downloaded yet. */
+function getFeaturedPackageArtwork(
+  pkg: ThunderstorePackageGroup | null | undefined,
+): ModArtwork | null {
+  const representative = pkg?.packagesByRuntime.IL2CPP || pkg?.packagesByRuntime.Mono;
+  const iconUrl =
+    representative?.versions?.[0]?.icon || representative?.icon || representative?.icon_url;
+  return iconUrl ? { iconUrl } : null;
+}
+
+/** A Nexus Collection's tile image as a 16:9 row thumbnail; a neutral glyph without one. */
+function CollectionTile({ src }: { src?: string }) {
+  const source = resolveImageSource(src);
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const showImage = Boolean(source) && failedSource !== source;
+  return (
+    <span className={cn("lib-tile", !showImage && "lib-tile--fallback")} aria-hidden="true">
+      {showImage ? (
+        <img
+          src={source}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          onError={() => setFailedSource(source ?? null)}
+        />
+      ) : (
+        <Icon name="layerGroup" />
+      )}
+    </span>
+  );
+}
+
 function ModLibraryDetailHeader({
   backLabel,
   onBack,
+  media,
+  mediaAlt,
   icon,
   title,
   meta,
@@ -446,6 +507,8 @@ function ModLibraryDetailHeader({
 }: {
   backLabel: string;
   onBack: () => void;
+  media?: string;
+  mediaAlt?: string;
   icon: ReactNode;
   title: string;
   meta: ReactNode;
@@ -466,6 +529,7 @@ function ModLibraryDetailHeader({
           <span>{backLabel}</span>
         </SimmButton>
       </div>
+      <DetailMedia src={media} alt={mediaAlt || `${title} artwork`} />
       <div className="lib-detail__identity">
         {icon}
         <div className="lib-detail__titles">
@@ -1719,6 +1783,7 @@ export function ModLibraryOverlay({
   onNavigationStateChange,
 }: Props) {
   const { settings } = useSettingsStore();
+  const lookupArtwork = useModArtwork();
   const defaultSearchSource = useMemo<"thunderstore" | "nexusmods">(() => {
     if (navigationState?.searchSource) {
       return navigationState.searchSource;
@@ -7011,46 +7076,6 @@ export function ModLibraryOverlay({
     [library],
   );
 
-  const renderCardIcon = useCallback(
-    (
-      name: string,
-      iconCachePath?: string,
-      iconUrl?: string,
-      size: "row" | "detail" = "row",
-    ) => {
-      const local = resolveImageSource(iconCachePath);
-      const remote = resolveImageSource(iconUrl);
-      const source = local || remote;
-      const className = `lib-icon lib-icon--${size}`;
-
-      if (!source) {
-        return (
-          <div className={`${className} lib-icon--fallback`} aria-hidden="true">
-            <Icon name="puzzlePiece" />
-          </div>
-        );
-      }
-
-      return (
-        <div className={className}>
-          <img
-            src={source}
-            alt={`${name} icon`}
-            className="lib-icon__image"
-            onError={(e) => {
-              if (remote && e.currentTarget.src !== remote) {
-                e.currentTarget.src = remote;
-                return;
-              }
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        </div>
-      );
-    },
-    [],
-  );
-
   const displayedDownloadedGroups = useMemo(() => {
     if (libraryTab === "updates") {
       return filteredDownloadedGroups.filter((group) =>
@@ -9597,6 +9622,7 @@ export function ModLibraryOverlay({
                         {
                           key: "s1api",
                           name: "S1API",
+                          artwork: lookupArtwork("S1API"),
                           description: "Shared APIs and interoperability (GitHub release).",
                           state: s1apiActionLabel,
                           onClick: handleDownloadS1APIClick,
@@ -9605,6 +9631,7 @@ export function ModLibraryOverlay({
                         {
                           key: "mlvscan",
                           name: "MLVScan",
+                          artwork: lookupArtwork("MLVScan"),
                           description: "Library scanning and validation (GitHub release).",
                           state: mlvscanActionLabel,
                           onClick: handleDownloadMlvscanClick,
@@ -9613,6 +9640,7 @@ export function ModLibraryOverlay({
                         {
                           key: "meshvault",
                           name: "MeshVault",
+                          artwork: lookupArtwork("MeshVault") ?? getFeaturedPackageArtwork(meshVaultFeaturedPackage),
                           description: "Installs its runtime DLLs into Plugins (Thunderstore).",
                           state: meshVaultActionLabel,
                           onClick: handleDownloadMeshVaultClick,
@@ -9621,6 +9649,7 @@ export function ModLibraryOverlay({
                         {
                           key: "s1mapi",
                           name: "S1MAPI",
+                          artwork: lookupArtwork("S1MAPI") ?? getFeaturedPackageArtwork(s1mapiFeaturedPackage),
                           description: "Shared Schedule I mapping APIs in UserLibs (Thunderstore).",
                           state: s1mapiActionLabel,
                           onClick: handleDownloadS1MapiClick,
@@ -9629,6 +9658,7 @@ export function ModLibraryOverlay({
                         {
                           key: "steamnetworklib",
                           name: "SteamNetworkLib",
+                          artwork: lookupArtwork("SteamNetworkLib") ?? getFeaturedPackageArtwork(steamNetworkLibFeaturedPackage),
                           description: "Shared Steam networking in UserLibs (Thunderstore).",
                           state: steamNetworkLibActionLabel,
                           onClick: handleDownloadSteamNetworkLibClick,
@@ -9644,6 +9674,9 @@ export function ModLibraryOverlay({
                         onClick={tool.onClick}
                         disabled={tool.disabled}
                       >
+                        {tool.artwork && (
+                          <ModThumbnail {...tool.artwork} name={tool.name} size={20} />
+                        )}
                         <span className="lib-recommended__name">{tool.name}</span>
                         <span
                           className={cn(
@@ -9682,6 +9715,7 @@ export function ModLibraryOverlay({
                 !searching &&
                 !showSearchResults && (
                   <LibraryEmpty
+                    icon="compass"
                     title="Browse Thunderstore"
                     action={
                       <SimmButton type="button" variant="outline" onClick={handleSearch}>
@@ -9762,13 +9796,15 @@ export function ModLibraryOverlay({
                               )
                             }
                           >
-                            {renderCardIcon(
-                              pkg.name,
-                              undefined,
-                              latestVersion?.icon ||
+                            <ModThumbnail
+                              name={pkg.name}
+                              iconUrl={
+                                latestVersion?.icon ||
                                 representative?.icon ||
-                                representative?.icon_url,
-                            )}
+                                representative?.icon_url
+                              }
+                              size={32}
+                            />
                             <div className="lib-cell lib-cell--name">
                               <div className="lib-row__title-line">
                                 <span className="lib-row__title">{pkg.name}</span>
@@ -9836,7 +9872,11 @@ export function ModLibraryOverlay({
                               )
                             }
                           >
-                            {renderCardIcon(mod.name, undefined, mod.picture_url)}
+                            <ModThumbnail
+                              name={mod.name}
+                              iconUrl={mod.thumbnail_url || mod.picture_url}
+                              size={32}
+                            />
                             <div className="lib-cell lib-cell--name">
                               <div className="lib-row__title-line">
                                 <span className="lib-row__title">{mod.name}</span>
@@ -9901,11 +9941,7 @@ export function ModLibraryOverlay({
                               )
                             }
                           >
-                            {renderCardIcon(
-                              collection.name,
-                              undefined,
-                              collection.tile_image_url,
-                            )}
+                            <CollectionTile src={collection.tile_image_url} />
                             <div className="lib-cell lib-cell--name">
                               <div className="lib-row__title-line">
                                 <span className="lib-row__title">{collection.name}</span>
@@ -9938,7 +9974,7 @@ export function ModLibraryOverlay({
                     {searchSource === "thunderstore" &&
                       showSearchResults &&
                       searchResults.length === 0 && (
-                        <LibraryEmpty title="No Thunderstore mods found">
+                        <LibraryEmpty icon="search" title="No Thunderstore mods found">
                           Nothing matched this search. Check the spelling or try the
                           mod author&apos;s name.
                         </LibraryEmpty>
@@ -9947,7 +9983,7 @@ export function ModLibraryOverlay({
                       nexusCatalogKind === "mods" &&
                       showNexusModsResults &&
                       nexusModsSearchResults.length === 0 && (
-                        <LibraryEmpty title="No Nexus Mods found">
+                        <LibraryEmpty icon="search" title="No Nexus Mods found">
                           Nothing matched this search. Check the spelling or try a
                           shorter name.
                         </LibraryEmpty>
@@ -9956,7 +9992,7 @@ export function ModLibraryOverlay({
                       nexusCatalogKind === "collections" &&
                       showNexusCollectionsResults &&
                       nexusCollectionsSearchResults.length === 0 && (
-                        <LibraryEmpty title="No Nexus Collections found">
+                        <LibraryEmpty icon="search" title="No Nexus Collections found">
                           Nothing matched this search. Try a broader term.
                         </LibraryEmpty>
                       )}
@@ -10014,6 +10050,7 @@ export function ModLibraryOverlay({
                     displayedDownloadedGroups.length === 0 &&
                     (downloadedSearch.trim() !== "" || downloadedFilter !== "all" ? (
                       <LibraryEmpty
+                        icon="filter"
                         title="No mods match this filter"
                         action={
                           <SimmButton
@@ -10031,12 +10068,13 @@ export function ModLibraryOverlay({
                         Clear the filter to see every downloaded mod.
                       </LibraryEmpty>
                     ) : libraryTab === "updates" ? (
-                      <LibraryEmpty title="Everything is up to date">
+                      <LibraryEmpty icon="circleCheck" title="Everything is up to date">
                         SIMM checks your downloaded mods against Thunderstore, Nexus
                         Mods and GitHub. New versions show up here.
                       </LibraryEmpty>
                     ) : (
                       <LibraryEmpty
+                        icon="puzzlePiece"
                         title="No downloaded mods yet"
                         action={
                           <div className="lib-empty__actions">
@@ -10143,11 +10181,12 @@ export function ModLibraryOverlay({
                               openContextMenu(event, downloadedContextMenuItems(group))
                             }
                           >
-                            {renderCardIcon(
-                              group.displayName,
-                              activeEntry?.iconCachePath,
-                              activeEntry?.iconUrl,
-                            )}
+                            <ModThumbnail
+                              name={group.displayName}
+                              iconCachePath={activeEntry?.iconCachePath}
+                              iconUrl={activeEntry?.iconUrl}
+                              size={32}
+                            />
                             <div className="lib-cell lib-cell--name">
                               <div className="lib-row__title-line">
                                 <span className="lib-row__title">{group.displayName}</span>
@@ -10212,12 +10251,16 @@ export function ModLibraryOverlay({
               <ModLibraryDetailHeader
                 backLabel={detailPageBackLabel}
                 onBack={closeDetailView}
-                icon={renderCardIcon(
-                  selectedNexusCollection.name,
-                  undefined,
-                  selectedNexusCollection.tile_image_url,
-                  "detail",
-                )}
+                media={selectedNexusCollection.tile_image_url}
+                mediaAlt={selectedNexusCollection.tile_image_alt}
+                icon={
+                  <ModThumbnail
+                    className="lib-detail__icon"
+                    name={selectedNexusCollection.name}
+                    iconUrl={selectedNexusCollection.tile_image_url}
+                    size={48}
+                  />
+                }
                 title={selectedNexusCollection.name}
                 meta={
                   <>
@@ -10360,12 +10403,15 @@ export function ModLibraryOverlay({
                 <ModLibraryDetailHeader
                   backLabel={detailPageBackLabel}
                   onBack={closeDetailView}
-                  icon={renderCardIcon(
-                    selectedDownloadedGroup.displayName,
-                    selectedDownloadedEntry.iconCachePath,
-                    selectedDownloadedEntry.iconUrl,
-                    "detail",
-                  )}
+                  icon={
+                    <ModThumbnail
+                      className="lib-detail__icon"
+                      name={selectedDownloadedGroup.displayName}
+                      iconCachePath={selectedDownloadedEntry.iconCachePath}
+                      iconUrl={selectedDownloadedEntry.iconUrl}
+                      size={48}
+                    />
+                  }
                   title={selectedDownloadedGroup.displayName}
                   meta={
                     <>
@@ -10464,14 +10510,19 @@ export function ModLibraryOverlay({
                 <ModLibraryDetailHeader
                   backLabel={detailPageBackLabel}
                   onBack={closeDetailView}
-                  icon={renderCardIcon(
-                    selectedThunderstorePackage.name,
-                    undefined,
-                    selectedThunderstoreLatestVersion?.icon ||
-                      selectedThunderstoreRepresentativePackage?.icon ||
-                      selectedThunderstoreRepresentativePackage?.icon_url,
-                    "detail",
-                  )}
+                  icon={
+                    // Thunderstore has no banners: the package icon is the artwork.
+                    <ModThumbnail
+                      className="lib-detail__icon"
+                      name={selectedThunderstorePackage.name}
+                      iconUrl={
+                        selectedThunderstoreLatestVersion?.icon ||
+                        selectedThunderstoreRepresentativePackage?.icon ||
+                        selectedThunderstoreRepresentativePackage?.icon_url
+                      }
+                      size={96}
+                    />
+                  }
                   title={selectedThunderstorePackage.name}
                   meta={
                     <>
@@ -10566,12 +10617,18 @@ export function ModLibraryOverlay({
                 <ModLibraryDetailHeader
                   backLabel={detailPageBackLabel}
                   onBack={closeDetailView}
-                  icon={renderCardIcon(
-                    selectedNexusResult.name,
-                    undefined,
-                    selectedNexusResult.picture_url,
-                    "detail",
-                  )}
+                  media={selectedNexusResult.picture_url}
+                  icon={
+                    <ModThumbnail
+                      className="lib-detail__icon"
+                      name={selectedNexusResult.name}
+                      iconUrl={
+                        selectedNexusResult.thumbnail_url ||
+                        selectedNexusResult.picture_url
+                      }
+                      size={48}
+                    />
+                  }
                   title={selectedNexusResult.name}
                   meta={
                     <>
@@ -10762,7 +10819,14 @@ export function ModLibraryOverlay({
                               key={`${collectionRuntimePreview}-${collectionFileKey(item.file)}`}
                               role="listitem"
                             >
-                              <span className="lib-list__name">{item.file.modName}</span>
+                              <span className="lib-list__name lib-list__name--thumb">
+                                <ModThumbnail
+                                  {...lookupArtwork(item.file.modName)}
+                                  name={item.file.modName}
+                                  size={24}
+                                />
+                                <span className="ui-truncate">{item.file.modName}</span>
+                              </span>
                               <span className="lib-list__meta">
                                 <span className="ui-mono">
                                   {item.file.version || "Version unknown"}
@@ -11362,14 +11426,27 @@ export function ModLibraryOverlay({
                           );
                           return (
                             <div key={dependency.raw} className="lib-list__row">
-                              <span className="lib-list__name">
-                                {dependency.packageKey}
-                                {dependency.minimumVersion && (
-                                  <span className="ui-mono">
-                                    {" "}
-                                    {formatVersionTag(dependency.minimumVersion)}
-                                  </span>
-                                )}
+                              <span className="lib-list__name lib-list__name--thumb">
+                                <ModThumbnail
+                                  {...lookupArtwork(
+                                    dependency.packageKey.split("-").pop() ||
+                                      dependency.packageKey,
+                                  )}
+                                  name={
+                                    dependency.packageKey.split("-").pop() ||
+                                    dependency.packageKey
+                                  }
+                                  size={24}
+                                />
+                                <span className="ui-truncate">
+                                  {dependency.packageKey}
+                                  {dependency.minimumVersion && (
+                                    <span className="ui-mono">
+                                      {" "}
+                                      {formatVersionTag(dependency.minimumVersion)}
+                                    </span>
+                                  )}
+                                </span>
                               </span>
                               <span className="lib-list__meta">
                                 {dependency.minimumVersion

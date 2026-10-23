@@ -271,7 +271,7 @@
   color: var(--simm-text-2);
 }
 
-.env-assets-row--disabled .env-assets-icon {
+.env-assets-row--disabled .ui-thumb {
   opacity: 0.55;
 }
 
@@ -293,33 +293,11 @@
   color: var(--simm-warn-text);
 }
 
-/* ----------------------------------------------------- Icon tiles */
+/* ----------------------------------------------------- Artwork */
 
-.env-assets-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.env-assets-inspector__stack {
   flex: none;
-  width: 2rem;
-  height: 2rem;
-  overflow: hidden;
-  border-radius: var(--simm-radius);
-  background: var(--simm-raised-hover);
-  color: var(--simm-text-3);
-  font-size: var(--simm-text-sm);
-}
-
-.env-assets-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.env-assets-icon--lg {
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--simm-radius-lg);
-  font-size: var(--simm-text-lg);
+  min-height: 3rem;
 }
 
 /* -------------------------------------------------------- Inspector */

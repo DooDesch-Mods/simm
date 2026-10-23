@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import type { Environment, ModLibraryEntry } from '../types';
 import { SimmButton, SimmDialogContent } from './primitives';
 import { Icon } from './Icon';
+import { ModThumbnail, ThumbnailStack } from './media/ModThumbnail';
 
 interface Props {
   isOpen: boolean;
@@ -81,7 +82,27 @@ export function InstallTargetsDialog({
         showCloseButton={false}
       >
         <DialogHeader className="modal-header">
-          <DialogTitle>{title}</DialogTitle>
+          <div className="lib-install-dialog__heading">
+            {entries.length === 1 ? (
+              <ModThumbnail
+                name={entries[0].displayName}
+                iconUrl={entries[0].iconUrl}
+                iconCachePath={entries[0].iconCachePath}
+                size={32}
+              />
+            ) : (
+              <ThumbnailStack
+                size={24}
+                items={entries.map((entry) => ({
+                  key: entry.storageId,
+                  name: entry.displayName,
+                  iconUrl: entry.iconUrl,
+                  iconCachePath: entry.iconCachePath,
+                }))}
+              />
+            )}
+            <DialogTitle>{title}</DialogTitle>
+          </div>
           <SimmButton variant="ghost" size="icon-sm" className="modal-close" onClick={onClose} disabled={installing} aria-label="Close install target dialog"><Icon name="times" /></SimmButton>
         </DialogHeader>
         <div className="app-dialog__body lib-install-dialog__body">

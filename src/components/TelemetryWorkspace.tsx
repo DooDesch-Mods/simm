@@ -7,6 +7,8 @@ import type { LiveTelemetryEvent, LiveTelemetryExport, LiveTelemetryStatus, Tele
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { Icon } from './Icon';
 import { SimmButton, SimmDialogContent } from './primitives';
+import { ModThumbnail } from './media/ModThumbnail';
+import { useLibraryArtwork } from './useLibraryArtwork';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -93,6 +95,7 @@ function describeSeverity(severity: string): { label: string; tone: 'danger' | '
 
 export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
   const { environments } = useEnvironmentStore();
+  const getModArtwork = useLibraryArtwork();
   const [preferences, setPreferences] = useState<TelemetryPreferences | null>(null);
   const [capability, setCapability] = useState<TelemetryCapability | null>(null);
   const [events, setEvents] = useState<LiveTelemetryEvent[]>([]);
@@ -472,6 +475,7 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
           <div className="telemetry-events__list" aria-live="polite">
             {filteredEvents.length === 0 ? (
               <div className="ui-empty">
+                <span className="ui-empty__emblem" aria-hidden="true"><Icon name={collectionEnabled ? 'waveSquare' : 'toggleOff'} /></span>
                 <h3 className="ui-empty__title">{collectionEnabled ? 'No warnings or errors' : 'Local collection is off'}</h3>
                 <p className="ui-empty__copy">{collectionEnabled
                   ? capturedSessionCount > 0
@@ -485,7 +489,10 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
                 <article key={event.eventId} className="telemetry-event">
                   <div className="telemetry-event__head">
                     <span className={`ui-status ui-status--${level.tone}`}>{level.label}</span>
-                    <strong className="telemetry-event__source ui-truncate">{event.modName ?? event.attribution}</strong>
+                    <span className="telemetry-event__source">
+                      {event.modName && <ModThumbnail {...getModArtwork(event.modName)} name={event.modName} size={20} />}
+                      <strong className="ui-truncate">{event.modName ?? event.attribution}</strong>
+                    </span>
                     <time className="telemetry-event__time" dateTime={event.occurredAt}>{formatTelemetryTime(event.occurredAt)}</time>
                   </div>
                   {event.message && <pre className="telemetry-event__message">{event.message}</pre>}
@@ -538,7 +545,10 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
               Choose what SIMM keeps and shares for each mod in <strong>{selectedEnvironmentName ?? 'this environment'}</strong>. “Local only” stays in this device’s history and is removed from every upload. An environment rule overrides a rule for all environments.
             </DialogDescription>
             {modPolicies.length === 0 ? (
-              <div className="ui-empty"><p className="ui-empty__copy">No installed mods were found for this environment.</p></div>
+              <div className="ui-empty">
+                <span className="ui-empty__emblem" aria-hidden="true"><Icon name="puzzlePiece" /></span>
+                <p className="ui-empty__copy">No installed mods were found for this environment.</p>
+              </div>
             ) : (
               <div className="telemetry-mod-policy-dialog__table">
                 <table className="ui-table">
@@ -554,9 +564,18 @@ export function TelemetryWorkspace({ onClose }: { onClose: () => void }) {
                       return (
                         <tr className="ui-row" key={policy.modEntry.modKey}>
                           <td>
-                            <div className="telemetry-mod-policy__name">{policy.modEntry.name}</div>
-                            <div className="telemetry-mod-policy__meta">
-                              {policy.modEntry.managed ? 'Managed' : 'Unmanaged'} · effective: {policy.effectiveMode.replace('_', ' ')}{policy.automaticReason ? ` (${policy.automaticReason})` : ''}
+                            <div className="telemetry-mod-policy__mod">
+                              <ModThumbnail
+                                {...(getModArtwork(policy.modEntry.name) ?? getModArtwork(policy.modEntry.fileName))}
+                                name={policy.modEntry.name}
+                                size={20}
+                              />
+                              <div className="telemetry-mod-policy__text">
+                                <div className="telemetry-mod-policy__name">{policy.modEntry.name}</div>
+                                <div className="telemetry-mod-policy__meta">
+                                  {policy.modEntry.managed ? 'Managed' : 'Unmanaged'} · effective: {policy.effectiveMode.replace('_', ' ')}{policy.automaticReason ? ` (${policy.automaticReason})` : ''}
+                                </div>
+                              </div>
                             </div>
                           </td>
                           <td>

@@ -471,6 +471,7 @@ export function SaveBackupsWorkspace(_props: { onClose: () => void }) {
         </div>
       ) : !status?.available ? (
         <div className="ui-empty">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name="save" /></span>
           <p className="ui-empty__title">No Schedule I saves found</p>
           <p className="ui-empty__copy">{status?.message ?? 'Start Schedule I once so it creates its save folder, then refresh.'}</p>
           <SimmButton type="button" variant="secondary" onClick={() => void refresh()} disabled={loading}>
@@ -479,6 +480,7 @@ export function SaveBackupsWorkspace(_props: { onClose: () => void }) {
         </div>
       ) : !selectedAccount ? (
         <div className="ui-empty">
+          <span className="ui-empty__emblem" aria-hidden="true"><Icon name="userCircle" /></span>
           <p className="ui-empty__title">No Steam save account found</p>
           <p className="ui-empty__copy">Start Schedule I once, then refresh this page to find its local save folders.</p>
           <SimmButton type="button" variant="secondary" onClick={() => void refresh()} disabled={loading}>

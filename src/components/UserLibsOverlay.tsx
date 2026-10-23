@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import type { Environment } from '../types';
 import { AnchoredContextMenu, type AnchoredContextMenuItem } from './AnchoredContextMenu';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { Icon } from './Icon';
+import { ModThumbnail, type ModArtwork, type ModThumbnailSize } from './media/ModThumbnail';
+import { useModArtwork } from './media/useModArtwork';
 import { SimmButton } from './primitives';
 
 interface UserLibInfo {
@@ -39,6 +41,26 @@ function formatFileSize(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** Library artwork when the file belongs to a known mod, otherwise a neutral type glyph in the same box. */
+function AssetThumbnail({
+  artwork,
+  name,
+  glyph,
+  size,
+}: {
+  artwork: ModArtwork | null;
+  name: string;
+  glyph: string;
+  size: ModThumbnailSize;
+}) {
+  if (artwork) return <ModThumbnail {...artwork} name={name} size={size} />;
+  return (
+    <span className="ui-thumb" style={{ '--ui-thumb-size': `${size}px` } as CSSProperties} aria-hidden="true">
+      <Icon name={glyph} />
+    </span>
+  );
+}
+
 /** True when a click landed on a control inside a row (switch, button), not on the row itself. */
 function isInteractiveTarget(target: EventTarget | null, row: HTMLElement): boolean {
   if (!(target instanceof Element)) return false;
@@ -48,6 +70,8 @@ function isInteractiveTarget(target: EventTarget | null, row: HTMLElement): bool
 
 export function UserLibsOverlay({ isOpen, environmentId, onUserLibsChanged }: Props) {
   const [userLibs, setUserLibs] = useState<UserLibInfo[]>([]);
+  const lookupArtwork = useModArtwork();
+  const userLibArtwork = (userLib: UserLibInfo) => lookupArtwork(userLib.fileName) ?? lookupArtwork(userLib.name);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLibsDirectory, setUserLibsDirectory] = useState('');
@@ -367,6 +391,7 @@ export function UserLibsOverlay({ isOpen, environmentId, onUserLibsChanged }: Pr
             )}
             {!error && !loading && userLibs.length === 0 && (
               <div className="ui-empty env-assets-empty">
+                <span className="ui-empty__emblem" aria-hidden="true"><Icon name="book" /></span>
                 <h3 className="ui-empty__title">No UserLibs in this environment</h3>
                 <p className="ui-empty__copy">
                   UserLibs are shared libraries that mods and plugins depend on. MelonLoader loads them first.
@@ -381,6 +406,7 @@ export function UserLibsOverlay({ isOpen, environmentId, onUserLibsChanged }: Pr
             )}
             {!loading && userLibs.length > 0 && filteredUserLibs.length === 0 && (
               <div className="ui-empty env-assets-empty">
+                <span className="ui-empty__emblem" aria-hidden="true"><Icon name="search" /></span>
                 <h3 className="ui-empty__title">No UserLibs match</h3>
                 <p className="ui-empty__copy">Nothing in this environment matches &quot;{searchTerm.trim()}&quot;.</p>
                 <div className="env-assets-empty__actions">
@@ -430,9 +456,12 @@ export function UserLibsOverlay({ isOpen, environmentId, onUserLibsChanged }: Pr
                             aria-pressed={isSelected}
                             onClick={() => setSelectedUserLibKey(userLibKey)}
                           >
-                            <span className="env-assets-icon" aria-hidden="true">
-                              <Icon name={userLib.isDirectory ? 'folderTree' : 'fileCode'} />
-                            </span>
+                            <AssetThumbnail
+                              artwork={userLibArtwork(userLib)}
+                              name={userLib.name}
+                              glyph={userLib.isDirectory ? 'folderTree' : 'book'}
+                              size={32}
+                            />
                             <span className="env-assets-row__text">
                               <span className="env-assets-row__name">{userLib.name}</span>
                               {userLib.fileName !== userLib.name && (
@@ -472,9 +501,12 @@ export function UserLibsOverlay({ isOpen, environmentId, onUserLibsChanged }: Pr
           {selectedUserLib && (
             <>
               <div className="env-assets-inspector__head">
-                <span className="env-assets-icon env-assets-icon--lg" aria-hidden="true">
-                  <Icon name={selectedUserLib.isDirectory ? 'folderTree' : 'fileCode'} />
-                </span>
+                <AssetThumbnail
+                  artwork={userLibArtwork(selectedUserLib)}
+                  name={selectedUserLib.name}
+                  glyph={selectedUserLib.isDirectory ? 'folderTree' : 'book'}
+                  size={48}
+                />
                 <div className="env-assets-inspector__titles">
                   <h3 className="env-assets-inspector__title">{selectedUserLib.name}</h3>
                   <div className="ui-meta">

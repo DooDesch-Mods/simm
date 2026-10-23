@@ -35,7 +35,8 @@ import {
   type SecurityScanReportOption,
 } from './SecurityScanReportOverlay';
 import { type SecurityReportWorkspaceRequest } from './SecurityScanReportPage';
-import { resolveImageSource, safeExternalUrl } from './modCardHelpers';
+import { safeExternalUrl } from './modCardHelpers';
+import { ModThumbnail, ThumbnailStack } from './media/ModThumbnail';
 import { onModMetadataRefreshStatus, onModsSnapshotUpdated } from '../services/events';
 import { AnchoredContextMenu, type AnchoredContextMenuItem } from './AnchoredContextMenu';
 import { getSecurityBadgeConfig } from './securityScanHelpers';
@@ -352,46 +353,20 @@ function formatShortDate(value?: number | string): string | null {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function ModIcon({
-  iconCachePath,
-  iconUrl,
-  size = 'row',
-}: {
-  iconCachePath?: string;
-  iconUrl?: string;
-  size?: 'row' | 'inspector';
-}) {
-  const local = resolveImageSource(iconCachePath);
-  const remote = resolveImageSource(iconUrl);
-  const [failedSources, setFailedSources] = useState<string[]>([]);
-  const source = [local, remote].find((candidate) => candidate && !failedSources.includes(candidate));
-
-  return (
-    <span className={cn('env-assets-icon', size === 'inspector' && 'env-assets-icon--lg')} aria-hidden="true">
-      {source ? (
-        <img
-          src={source}
-          alt=""
-          onError={() => setFailedSources((current) => [...current, source])}
-        />
-      ) : (
-        <Icon name="puzzlePiece" />
-      )}
-    </span>
-  );
-}
-
 function EmptyState({
+  icon,
   title,
   children,
   actions,
 }: {
+  icon: string;
   title: string;
   children?: ReactNode;
   actions?: ReactNode;
 }) {
   return (
     <div className="ui-empty env-assets-empty">
+      <span className="ui-empty__emblem" aria-hidden="true"><Icon name={icon} /></span>
       <h3 className="ui-empty__title">{title}</h3>
       {children && <p className="ui-empty__copy">{children}</p>}
       {actions && <div className="env-assets-empty__actions">{actions}</div>}
@@ -3346,7 +3321,7 @@ export function ModsOverlay({
     return (
       <>
         <div className="env-assets-inspector__head">
-          <ModIcon iconCachePath={mod.iconCachePath} iconUrl={mod.iconUrl} size="inspector" />
+          <ModThumbnail iconCachePath={mod.iconCachePath} iconUrl={mod.iconUrl} name={mod.name} size={48} />
           <div className="env-assets-inspector__titles">
             <h3 className="env-assets-inspector__title">{mod.name}</h3>
             <div className="ui-meta">
@@ -3453,7 +3428,16 @@ export function ModsOverlay({
     const disabledCount = selectedInstalledMods.length - enabledCount;
     return (
       <div className="env-assets-inspector__head">
-        <span className="env-assets-icon env-assets-icon--lg" aria-hidden="true"><Icon name="layerGroup" /></span>
+        <ThumbnailStack
+          className="env-assets-inspector__stack"
+          size={32}
+          items={selectedInstalledMods.map((mod) => ({
+            key: installedModKey(mod),
+            name: mod.name,
+            iconUrl: mod.iconUrl,
+            iconCachePath: mod.iconCachePath,
+          }))}
+        />
         <div className="env-assets-inspector__titles">
           <h3 className="env-assets-inspector__title">{selectedInstalledMods.length} mods selected</h3>
           <div className="ui-meta">
@@ -3490,6 +3474,7 @@ export function ModsOverlay({
       if (modsTab === 'updates' && !hasActiveFilter) {
         return (
           <EmptyState
+            icon="circleCheck"
             title="All mods are up to date"
             actions={(
               <SimmButton type="button" variant="secondary" onClick={handleCheckModUpdates} disabled={checkingModUpdates}>
@@ -3504,6 +3489,7 @@ export function ModsOverlay({
       if (mods.length === 0) {
         return (
           <EmptyState
+            icon="puzzlePiece"
             title="No mods in this environment"
             actions={(
               <>
@@ -3524,6 +3510,7 @@ export function ModsOverlay({
       }
       return (
         <EmptyState
+          icon="search"
           title="No mods match"
           actions={(
             <SimmButton
@@ -3591,7 +3578,7 @@ export function ModsOverlay({
                     onClick={(event) => selectInstalledMod(mod, index, event)}
                     onKeyDown={(event) => handleInstalledModRowKeyDown(event, mod, index)}
                   >
-                    <ModIcon iconCachePath={mod.iconCachePath} iconUrl={mod.iconUrl} />
+                    <ModThumbnail iconCachePath={mod.iconCachePath} iconUrl={mod.iconUrl} name={mod.name} size={32} />
                     <span className="env-assets-row__text">
                       <span className="env-assets-row__name">{mod.name}</span>
                       <span className="env-assets-row__desc">

@@ -106,8 +106,21 @@
   font-weight: 500;
 }
 
+/* Nexus collection tiles are landscape banners, not square icons. */
+.profiles-workspace__tile {
+  width: 36px;
+}
+
+.profiles-detail__tile {
+  width: 56px;
+}
+
 .profiles-workspace__profile-meta {
   grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--simm-space-2);
+  min-width: 0;
   font-size: var(--simm-text-xs);
   color: var(--simm-text-2);
 }
@@ -314,6 +327,17 @@
 }
 
 
+.profiles-items__name-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--simm-space-3);
+  min-width: 0;
+}
+
+.profiles-items__name-text {
+  min-width: 0;
+}
+
 .profiles-items__name strong,
 .profiles-items__name small {
   display: block;
@@ -443,6 +467,13 @@
 }
 
 .profiles-diff__item {
+  display: flex;
+  align-items: center;
+  gap: var(--simm-space-2);
+  min-width: 0;
+}
+
+.profiles-diff__item-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -612,7 +643,7 @@
 
 .profile-export-dialog__item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: var(--simm-space-3);
   min-height: var(--simm-row-h);

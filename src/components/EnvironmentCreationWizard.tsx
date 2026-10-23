@@ -5,6 +5,7 @@ import { ApiService } from '../services/api';
 import type { AppConfig, BranchConfig } from '../types';
 import { resolveExperienceMode, resolveShowAdvancedGameTools } from '../utils/uxSettings';
 import { Icon } from './Icon';
+import { GameArt } from './media/GameArt';
 import {
   Dialog,
   DialogFooter,
@@ -610,6 +611,7 @@ export function EnvironmentCreationWizard({ onClose }: Props) {
               >
                 <label className={`wizard-option${!steamAvailable ? ' wizard-option--disabled' : ''}`}>
                   <RadioGroupItem value="steam" disabled={!steamAvailable} />
+                  <span className="ui-thumb wizard-option__icon" aria-hidden="true"><Icon name="steam" /></span>
                   <span className="wizard-option__text">
                     <strong>Use My Steam Install</strong>
                     <span>{steamOptionDescription}</span>
@@ -620,9 +622,11 @@ export function EnvironmentCreationWizard({ onClose }: Props) {
                       </span>
                     )}
                   </span>
+                  {steamAvailable && <GameArt appId={steamInstallations[0].appId} className="wizard-option__art" />}
                 </label>
                 <label className="wizard-option">
                   <RadioGroupItem value="import" />
+                  <span className="ui-thumb wizard-option__icon" aria-hidden="true"><Icon name="folderOpen" /></span>
                   <span className="wizard-option__text">
                     <strong>Import Existing Folder</strong>
                     <span>Use a Schedule I folder that is already on disk. SIMM detects branch, runtime, and version.</span>
@@ -631,6 +635,7 @@ export function EnvironmentCreationWizard({ onClose }: Props) {
                 {canDownloadBranches && (
                   <label className="wizard-option">
                     <RadioGroupItem value="download" />
+                    <span className="ui-thumb wizard-option__icon" aria-hidden="true"><Icon name="cloudDownloadAlt" /></span>
                     <span className="wizard-option__text">
                       <strong>Download Separate Branch</strong>
                       <span>Download a beta or alternate branch into its own folder. SIMM keeps it updated.</span>

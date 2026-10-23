@@ -13,6 +13,7 @@ const apiMocks = vi.hoisted(() => ({
   revealPath: vi.fn(),
 }));
 
+vi.mock('./useLibraryArtwork', () => ({ useLibraryArtwork: () => () => null }));
 vi.mock('../services/api', () => ({
   ApiService: apiMocks,
 }));

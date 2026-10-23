@@ -65,7 +65,7 @@ describe('DownloadsPanel', () => {
     expect(screen.getAllByText('Recent').length).toBeGreaterThan(0);
     expect(screen.getByText('Main Branch')).toBeTruthy();
     expect(screen.getByText('ExampleMod.zip')).toBeTruthy();
-    expect(document.querySelector('.downloads-panel__icon-image')).not.toBeNull();
+    expect(document.querySelector('.downloads-panel__thumb img')).not.toBeNull();
     expect(screen.getByText('25% · 512 MB of 2.00 GB')).toBeTruthy();
   });
 
