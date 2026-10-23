@@ -16,6 +16,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  container: env-assets-list / inline-size;
 }
 
 .env-assets__head {
@@ -63,6 +64,15 @@
 
 .env-assets__inspector {
   min-height: 0;
+}
+
+/* Nothing to inspect (empty environment): the list takes the full width. */
+.env-assets.env-assets--solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.env-assets--solo .env-assets__inspector {
+  display: none;
 }
 
 /* ------------------------------------------------- Segmented control */
@@ -190,6 +200,7 @@
   text-align: right;
 }
 
+/* The foundation off-state is too faint on light themes inside dense rows. */
 .env-assets-table .env-assets-table__num {
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -664,7 +675,13 @@
 
 /* --------------------------------------------- Narrow workspaces */
 
-@container (max-width: 60rem) {
+@container (max-width: 72rem) {
+  .env-assets.ui-split {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+}
+
+@container env-assets-list (max-width: 52rem) {
   .env-assets__bar,
   .env-assets__filters {
     flex-wrap: wrap;
@@ -672,5 +689,8 @@
 
   .env-assets-table__col-source { width: 7rem; }
   .env-assets-table__col-version { width: 7.5rem; }
-  .env-assets-table__col-status { width: 8.5rem; }
+  .env-assets-table__col-type { width: 5.5rem; }
+  .env-assets-table__col-size { width: 5.5rem; }
+  .env-assets-table__col-status { width: 10.5rem; }
+  .env-assets-table__col-toggle { width: 4.5rem; }
 }

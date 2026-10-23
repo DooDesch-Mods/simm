@@ -443,7 +443,7 @@ function LocalSourceVersionSelect({
       }}
       disabled={!preview || loadingPreview}
     >
-      <SelectTrigger id="local-source-version" className="workspace-inspector-link-panel__input">
+      <SelectTrigger id="local-source-version">
         <SelectValue>
           {(currentValue) => {
             if (currentValue === LOCAL_SOURCE_VERSION_UNSELECTED) {
@@ -454,7 +454,7 @@ function LocalSourceVersionSelect({
           }}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className="workspace-inspector-link-panel__select-content" align="start">
+      <SelectContent align="start">
         <SelectGroup>
           <SelectItem value={LOCAL_SOURCE_VERSION_UNSELECTED}>Select installed version</SelectItem>
           {options.map((version) => (
@@ -3379,13 +3379,13 @@ export function ModsOverlay({
           <SimmButton
             type="button"
             variant="ghost"
+            size="icon"
             aria-label="More actions"
             aria-haspopup="menu"
             title="More actions"
             onClick={(event) => openMenuFromTrigger(event, buildModMenuItems(mod, { includeToggle: false }))}
           >
             <Icon name="ellipsisH" />
-            <span>More</span>
           </SimmButton>
         </div>
 
@@ -3598,7 +3598,6 @@ export function ModsOverlay({
                 <td><ExceptionTag exception={exception} /></td>
                 <td className="env-assets-table__toggle">
                   <Switch
-                    size="sm"
                     checked={!mod.disabled}
                     disabled={isToggling}
                     aria-label={`${mod.name} enabled`}
@@ -3693,7 +3692,7 @@ export function ModsOverlay({
         </Dialog>
       )}
 
-      <div className="env-assets ui-split mods-tab">
+      <div className={`env-assets ui-split${mods.length === 0 && !loading ? ' env-assets--solo' : ''}`}>
         <section className="env-assets__main" aria-label="Mods">
           <div className="env-assets__head">
             <div className="ui-toolbar env-assets__bar">
