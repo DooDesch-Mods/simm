@@ -17,7 +17,7 @@ Two audiences, and the product must work perfectly for both (confirmed by the ma
 - **Mod developers** — the original audience. SIMM began as a tool to make mod development easier: several environments (branches, IL2CPP vs. Mono runtimes), logs, MelonLoader configs, local dev mods, switching many times per session.
 - **Players** — the audience SIMM grew into. Schedule I players who want to install, update, and remove mods without touching files. *(inferred)* They usually run one environment, open SIMM before playing, and need the next safe action to be obvious.
 
-Neither audience is served by a mode switch that hides the other's world; the developer depth has to integrate meaningfully with the player path.
+The developer depth has to integrate meaningfully with the player path. *(open decision)* The existing Player / Power User experience mode (setup guide and Settings → App mode) currently only gates downloading separate Steam branches; whether to keep it, rename it, or retire it in favour of placement-based depth has not been decided by the maintainer.
 
 ## Product Purpose
 
@@ -50,7 +50,7 @@ The library-first model: mods live once in a shared library and are materialized
 - Name: SIMM — Schedule I Mod Manager. App icon in `src-tauri/icons/`.
 - Recognition over reinvention (maintainer, 2026-10): stay as close to the current look as possible so existing users feel at home and no needless friction appears. Keep the dark navy/graphite "modern-blue" identity, the blue accent, the app icon, and the overall shell shape; fix what is broken rather than replacing the world.
 - What is broken (maintainer, 2026-10): the visuals are poorly executed, surfaces are overcrowded, and UI and UX are out of step.
-- Structure (maintainer, 2026-10): each environment is an object with its own tabs (Overview, Mods, Plugins, UserLibs, Config, Logs, Saves). Developer tools live inside the environment, one step deeper, instead of all on one surface. Home is "ready to play". The Mod Library stays global; downloads live in the status bar.
+- Structure (maintainer, 2026-10): each environment is an object with its own tabs (Overview, Mods, Plugins, UserLibs, Config, Logs). Saves were proposed as a tab too, but save games belong to the Steam account, not to an environment (`SaveBackupsWorkspace` has no environment), so Saves stays a global destination. Developer tools live inside the environment, one step deeper, instead of all on one surface. Home is "ready to play". The Mod Library stays global; downloads live in the status bar.
 - Still binding from the maintainers' spec (`docs/simm-desktop-ui-redesign-spec.md`): an operational desktop utility, not a web dashboard. No landing-page heroes, bento grids, feature-card grids, glows, decorative gradients, or emoji in UI copy.
 
 ## Evidence on Hand
