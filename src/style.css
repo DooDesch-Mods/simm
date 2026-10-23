@@ -17,6 +17,8 @@
 @import "./styles/saves.css";
 @import "./styles/downloads.css";
 @import "./styles/library.css";
+@import "./styles/env-assets.css";
 @import "./styles/environments.css";
 @import "./styles/dialogs.css";
 @import "./styles/shell.css";
+@import "./styles/toasts.css";
